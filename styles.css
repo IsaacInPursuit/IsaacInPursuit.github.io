@@ -1,51 +1,58 @@
-/* styles.css */
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #F7F7F7;
-    color: #2F3A46;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #F7F7F7;
+  color: #2F3A46;
 }
 
 header {
-    background-color: #4D94A7;
-    padding: 10px;
+  background-color: #4D94A7;
+  color: white;
+  padding: 2em 0;
+  text-align: center;
 }
 
-nav ul {
-    list-style-type: none;
-    padding: 0;
+header h1 {
+  margin: 0;
+  font-size: 3em;
 }
 
-nav ul li {
-    display: inline;
-    margin-right: 20px;
-}
-
-nav ul li a {
-    text-decoration: none;
-    color: white;
+header h2 {
+  font-size: 1.5em;
+  margin: 0.5em 0;
 }
 
 section {
-    padding: 20px;
-    margin: 20px;
-    background-color: #E9F2F7;
-    border-radius: 8px;
+  padding: 2em;
+  margin: 2em 0;
+  background-color: #E9F2F7;
 }
 
-h1, h2 {
-    color: #2F3A46;
+section h3 {
+  color: #0066CC;
 }
 
-button {
-    background-color: #0066CC;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
+ul {
+  list-style-type: none;
+  padding: 0;
 }
 
-button:hover {
-    background-color: #004B8D;
+ul li {
+  margin: 1em 0;
+}
+
+ul li strong {
+  color: #0066CC;
+}
+
+footer {
+  background-color: #4D94A7;
+  color: white;
+  text-align: center;
+  padding: 1em 0;
+}
+
+footer p {
+  margin: 0;
 }
