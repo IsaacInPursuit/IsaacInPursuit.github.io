@@ -1,76 +1,162 @@
-
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Isaac Johnston | Luxury Real Estate</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IsaacInPursuit — Links</title>
+  <meta name="description" content="All of IsaacInPursuit’s links: projects, socials, contact, resume." />
+  <meta property="og:title" content="IsaacInPursuit — Links" />
+  <meta property="og:description" content="Projects, socials, contact, resume — on a fast, self‑hosted page." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://isaacinpursuit.github.io/" />
+  <meta property="og:image" content="/og.png" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8C%8A%3C/text%3E%3C/svg%3E" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      fontFamily: { sans: ['Inter','system-ui','sans-serif'] },
+      colors: { brand: { 500:'#06b6d4',600:'#0891b2',700:'#0e7490' } },
+      boxShadow: { soft: '0 12px 32px rgba(2,6,23,.18)' }
+    }}};
+  </script>
+  <style>
+    .fade-in { animation: fadeIn .5s ease both }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+  </style>
 </head>
-<body>
-    <header>
-        <div class="navbar">
-            <div class="logo">Isaac Johnston</div>
-            <nav>
-                <ul>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#target-jobs">Target Jobs</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </nav>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased">
+  <main class="min-h-screen flex items-center justify-center py-12 px-4">
+    <div class="w-full max-w-xl">
+      <!-- Card -->
+      <div class="relative rounded-3xl bg-white/80 dark:bg-slate-900/70 backdrop-blur border border-slate-200 dark:border-slate-800 shadow-soft">
+        <!-- Header -->
+        <div class="p-8 pb-4 text-center fade-in">
+          <div class="mx-auto h-28 w-28 rounded-full bg-gradient-to-tr from-brand-500/20 to-brand-700/20 border border-slate-200 dark:border-slate-800 grid place-items-center">
+            <img src="/avatar.jpg" alt="Isaac avatar" class="h-24 w-24 rounded-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'text-4xl',textContent:'🧭'}))">
+          </div>
+          <h1 class="mt-4 text-2xl font-extrabold">Isaac Johnston</h1>
+          <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Founder @ IIP Holdings • UNC Charlotte • Eagle Scout</p>
+          <div class="mt-3 inline-flex items-center gap-2 text-xs text-slate-500">
+            <button id="themeToggle" class="px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700">🌗 Theme</button>
+            <a href="/resume.pdf" class="px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">Resume</a>
+          </div>
         </div>
-    </header>
-    
-    <section id="hero">
-        <div class="hero-content">
-            <h1>Welcome to Isaac Johnston's Luxury Real Estate</h1>
-            <p>Building wealth through real estate, financial independence, and innovation.</p>
+
+        <!-- Socials row -->
+        <div class="px-8 pt-4 grid grid-cols-5 gap-2 text-sm">
+          <a class="group py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-center hover:bg-slate-100 dark:hover:bg-slate-800" href="https://github.com/IsaacInPursuit" aria-label="GitHub">🐙<span class="sr-only">GitHub</span></a>
+          <a class="group py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-center hover:bg-slate-100 dark:hover:bg-slate-800" href="#" aria-label="LinkedIn">in<span class="sr-only">LinkedIn</span></a>
+          <a class="group py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-center hover:bg-slate-100 dark:hover:bg-slate-800" href="mailto:isaacinpursuit@gmail.com" aria-label="Email">✉️<span class="sr-only">Email</span></a>
+          <a class="group py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-center hover:bg-slate-100 dark:hover:bg-slate-800" href="#contact" aria-label="Contact form">📝<span class="sr-only">Contact</span></a>
+          <a class="group py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-center hover:bg-slate-100 dark:hover:bg-slate-800" href="/links.vcf" aria-label="vCard">📇<span class="sr-only">vCard</span></a>
         </div>
-    </section>
 
-    <section id="about">
-        <div class="section-content">
-            <h2>About Me</h2>
-            <p>I’m Isaac Johnston, a soon-to-be graduate of UNC Charlotte with a background in Criminal Justice and Psychology. These fields have sharpened my ability to analyze complex situations, understand human behavior, and communicate effectively — skills that fuel my entrepreneurial journey.</p>
-            <p>Currently, I’m focused on securing a strategic role in real estate or finance to gain the expertise needed to scale my investments. I’m looking for opportunities to learn how to structure smart loans, identify high-return properties, and navigate the full scope of financial growth.</p>
+        <!-- Links -->
+        <div class="p-8 space-y-3">
+          <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="https://isaacinpursuit.github.io/">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-semibold">Portfolio / Personal Site</div>
+                <div class="text-sm opacity-70">Projects, ventures, resume</div>
+              </div>
+              <div class="text-xl">↗</div>
+            </div>
+          </a>
+
+          <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="#farm">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-semibold">Farm Compliance MVP</div>
+                <div class="text-sm opacity-70">Multilingual onboarding & checklists</div>
+              </div>
+              <div class="text-xl">🌱</div>
+            </div>
+          </a>
+
+          <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="#bakd">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-semibold">Bakd Bros — THCA Mixes</div>
+                <div class="text-sm opacity-70">Distro & investor notes</div>
+              </div>
+              <div class="text-xl">🍪</div>
+            </div>
+          </a>
+
+          <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="#uncc">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-semibold">UNCC Student Network</div>
+                <div class="text-sm opacity-70">Jobs, events, recruiting pilots</div>
+              </div>
+              <div class="text-xl">🎓</div>
+            </div>
+          </a>
+
+          <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="/resume.pdf">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-semibold">Download Resume (PDF)</div>
+                <div class="text-sm opacity-70">One page</div>
+              </div>
+              <div class="text-xl">📄</div>
+            </div>
+          </a>
+
+          <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="mailto:isaacinpursuit@gmail.com">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-semibold">Email Me</div>
+                <div class="text-sm opacity-70">isaacinpursuit@gmail.com</div>
+              </div>
+              <div class="text-xl">✉️</div>
+            </div>
+          </a>
         </div>
-    </section>
 
-    <section id="target-jobs">
-        <div class="section-content">
-            <h2>Target Jobs & Roles</h2>
-            <ul>
-                <li>Real Estate Agent/Broker</li>
-                <li>Mortgage Broker/Loan Officer</li>
-                <li>Financial Analyst/Advisor</li>
-                <li>Property Management</li>
-                <li>Real Estate Investment Firms</li>
-            </ul>
+        <!-- Contact form -->
+        <div id="contact" class="px-8 pb-8">
+          <form action="https://formspree.io/f/your-id" method="POST" class="space-y-3">
+            <div class="text-sm font-semibold">Quick message</div>
+            <input required type="text" name="name" placeholder="Your name" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent" />
+            <input required type="email" name="email" placeholder="you@example.com" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent" />
+            <textarea required name="message" rows="4" placeholder="What's up?" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"></textarea>
+            <button class="w-full px-4 py-3 rounded-xl bg-brand-600 text-white hover:bg-brand-700">Send</button>
+          </form>
+          <p class="mt-2 text-xs text-slate-500">Replace Formspree endpoint with your own or wire to a serverless function later.</p>
         </div>
-    </section>
+      </div>
 
-    <section id="contact">
-        <div class="section-content">
-            <h2>Contact Me</h2>
-            <form id="contact-form">
-                <label for="name">Name:</label>
-                <input type="text" id="name" name="name" required>
-                
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
-                
-                <label for="message">Message:</label>
-                <textarea id="message" name="message" required></textarea>
-                
-                <button type="submit">Send</button>
-            </form>
-        </div>
-    </section>
+      <!-- Footer -->
+      <div class="text-center mt-4 text-xs text-slate-500">© <span id="year"></span> IsaacInPursuit • Self‑hosted Beacons‑style page
+      </div>
+    </div>
+  </main>
 
-    <footer>
-        <p>&copy; 2025 Isaac Johnston</p>
-    </footer>
+  <script>
+    // Theme persistence
+    const applyTheme = () => {
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    }
+    applyTheme();
+    document.getElementById('themeToggle')?.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.theme = isDark ? 'dark' : 'light';
+    })
 
-    <script src="scripts.js"></script>
+    // Year stamp
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
