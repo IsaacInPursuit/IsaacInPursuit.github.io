@@ -1,0 +1,26 @@
+[
+  {
+    "title": "Farm Compliance MVP",
+    "description": "Multilingual onboarding and checklist tooling for farm owners.",
+    "link": {
+      "text": "Repo",
+      "href": "https://github.com/IsaacInPursuit/farm-compliance"
+    }
+  },
+  {
+    "title": "Bakd Bros — THCA Mixes",
+    "description": "Distribution platform and investor notes for cannabis products.",
+    "link": {
+      "text": "Website",
+      "href": "https://bakdbros.com/"
+    }
+  },
+  {
+    "title": "UNCC Student Network",
+    "description": "Platform connecting UNC Charlotte students with jobs, events, and recruiting pilots.",
+    "link": {
+      "text": "Info",
+      "href": "https://github.com/IsaacInPursuit/uncc-network"
+    }
+  }
+]

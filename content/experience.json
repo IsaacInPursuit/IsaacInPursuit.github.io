@@ -1,0 +1,16 @@
+[
+  {
+    "role": "Founder",
+    "company": "IIP Holdings",
+    "start": "2023-01",
+    "end": "Present",
+    "description": "Leading product and strategy for early-stage ventures."
+  },
+  {
+    "role": "Software Engineering Intern",
+    "company": "Google",
+    "start": "2022-05",
+    "end": "2022-08",
+    "description": "Contributed features to internal tools improving data workflow."
+  }
+]
