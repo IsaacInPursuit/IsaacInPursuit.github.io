@@ -1,0 +1,8 @@
+:root {
+  --fract-bg: #0A2239;
+  --fract-fg: #F2F2F2;
+}
+.dark {
+  --fract-bg: #0a0a0a;
+  --fract-fg: #e5e7eb;
+}
