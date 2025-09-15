@@ -2,26 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Fractal Demo</title>
+  <title>Golden Fractal</title>
   <style>
-    body { margin: 0; overflow-x: hidden; background: #000; color: #fff; font-family: sans-serif; }
-    canvas { display: block; }
-    .spin { position: fixed; top: 1rem; right: 1rem; width: 50px; height: 50px; border-radius: 50%; border: 4px solid #fff; border-top-color: transparent; animation: spin 2s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    section { height: 100vh; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
-    .hidden { opacity: 0; transform: translateY(20px); transition: opacity .6s, transform .6s; }
-    .show { opacity: 1; transform: none; }
+    body {margin:0; overflow-x:hidden; background:#000; color:#fff; font-family:sans-serif;}
+    canvas {position:fixed; top:0; left:0; display:block; z-index:-1;}
+    .spin {position:fixed; top:1rem; right:1rem; width:50px; height:50px; border-radius:50%; border:4px solid #fff; border-top-color:transparent; animation:spin 2s linear infinite;}
+    @keyframes spin {to{transform:rotate(360deg);}}
+    section {height:100vh; display:flex; align-items:center; justify-content:center; font-size:2rem; padding:1rem; text-align:center;}
+    .hidden {opacity:0; transform:translateY(20px); transition:opacity .6s, transform .6s;}
+    .show {opacity:1; transform:none;}
   </style>
 </head>
 <body>
   <div class="spin"></div>
   <canvas id="fractal"></canvas>
-  <section style="background:#111;" class="show">Scroll down for more ✨</section>
-  <section style="background:#222;" class="hidden">You found the ancient geometry!</section>
+  <section class="show" style="background:#111;">Scroll to grow the golden fractal 🍃</section>
+  <section class="hidden" style="background:#222;">Math: φ = (1+√5)/2 rules the lengths.</section>
+  <section class="hidden" style="background:#333;">History: Egyptians, Greeks and da Vinci sought this harmony.</section>
+  <section class="hidden" style="background:#444;">Forgotten patterns: triadic branches echo in nature.</section>
   <script>
     const canvas = document.getElementById('fractal');
     const ctx = canvas.getContext('2d');
     const spinner = document.querySelector('.spin');
+    const PHI = (1 + Math.sqrt(5)) / 2;
+    const MAX_DEPTH = 9;
+    let currentDepth = 1;
 
     function resize() {
       canvas.width = window.innerWidth;
@@ -31,22 +36,30 @@
     window.addEventListener('resize', resize);
     resize();
 
-    const MAX_DEPTH = 7;
-    function drawFractal(x, y, size, depth = 0) {
-      if (size < 2 || depth >= MAX_DEPTH) return;
-      ctx.strokeRect(x, y, size, size);
-      const s = size / 2;
-      drawFractal(x, y, s, depth + 1);
-      drawFractal(x + s, y, s, depth + 1);
-      drawFractal(x, y + s, s, depth + 1);
-      drawFractal(x + s, y + s, s, depth + 1);
+    function branch(x, y, length, angle, depth) {
+      if (depth >= currentDepth || length < 2) return;
+      const x2 = x + length * Math.cos(angle);
+      const y2 = y - length * Math.sin(angle);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      const newLen = length / PHI;
+      [-Math.PI/6, 0, Math.PI/6].forEach(a => branch(x2, y2, newLen, angle + a, depth + 1));
     }
+
     function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0,0,canvas.width,canvas.height);
       ctx.strokeStyle = '#0ff';
-      drawFractal(0, 0, Math.min(canvas.width, canvas.height));
+      branch(canvas.width/2, canvas.height, canvas.height/3, Math.PI/2, 0);
       spinner?.remove();
     }
+
+    window.addEventListener('scroll', () => {
+      currentDepth = Math.min(MAX_DEPTH, Math.floor(window.scrollY / 80) + 1);
+      draw();
+    });
+
     // Scroll reveal
     const obs = new IntersectionObserver(entries => {
       entries.forEach(entry => {
