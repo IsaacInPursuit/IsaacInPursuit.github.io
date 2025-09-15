@@ -21,6 +21,8 @@
   <script>
     const canvas = document.getElementById('fractal');
     const ctx = canvas.getContext('2d');
+    const spinner = document.querySelector('.spin');
+
     function resize() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -28,19 +30,22 @@
     }
     window.addEventListener('resize', resize);
     resize();
-    function drawFractal(x, y, size) {
-      if (size < 2) return;
+
+    const MAX_DEPTH = 7;
+    function drawFractal(x, y, size, depth = 0) {
+      if (size < 2 || depth >= MAX_DEPTH) return;
       ctx.strokeRect(x, y, size, size);
       const s = size / 2;
-      drawFractal(x, y, s);
-      drawFractal(x + s, y, s);
-      drawFractal(x, y + s, s);
-      drawFractal(x + s, y + s, s);
+      drawFractal(x, y, s, depth + 1);
+      drawFractal(x + s, y, s, depth + 1);
+      drawFractal(x, y + s, s, depth + 1);
+      drawFractal(x + s, y + s, s, depth + 1);
     }
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.strokeStyle = '#0ff';
       drawFractal(0, 0, Math.min(canvas.width, canvas.height));
+      spinner?.remove();
     }
     // Scroll reveal
     const obs = new IntersectionObserver(entries => {
