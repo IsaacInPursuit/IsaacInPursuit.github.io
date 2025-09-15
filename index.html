@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>IsaacInPursuit — Links</title>
-  <meta name="description" content="All of IsaacInPursuit’s links: projects, socials, contact, resume." />
-  <meta property="og:title" content="IsaacInPursuit — Links" />
-  <meta property="og:description" content="Projects, socials, contact, resume — on a fast, self‑hosted page." />
+  <title>Isaac Johnston</title>
+  <meta name="description" content="Entrepreneur in real estate, finance, and startups." />
+  <meta property="og:title" content="Isaac Johnston" />
+  <meta property="og:description" content="Grounded in faith. Focused on growth. Open to learning." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://isaacinpursuit.github.io/" />
   <meta property="og:image" content="/og.png" />
@@ -24,7 +24,7 @@
       fontFamily: { sans: ['Inter','system-ui','sans-serif'] },
       colors: { brand: { 500:'#06b6d4',600:'#0891b2',700:'#0e7490' } },
       boxShadow: { soft: '0 12px 32px rgba(2,6,23,.18)' }
-    }}};
+    }}}
   </script>
   <style>
     .fade-in { animation: fadeIn .5s ease both }
@@ -32,123 +32,101 @@
   </style>
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased">
-  <main class="min-h-screen flex items-center justify-center py-12 px-4">
-    <div class="w-full max-w-xl">
-      <!-- Card -->
-      <div class="relative rounded-3xl bg-white/80 dark:bg-slate-900/70 backdrop-blur border border-slate-200 dark:border-slate-800 shadow-soft">
-        <!-- Header -->
-        <div class="p-8 pb-4 text-center fade-in">
-          <div class="mx-auto h-28 w-28 rounded-full bg-gradient-to-tr from-brand-500/20 to-brand-700/20 border border-slate-200 dark:border-slate-800 grid place-items-center">
-            <img src="/avatar.jpg" alt="Isaac avatar" class="h-24 w-24 rounded-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'text-4xl',textContent:'🧭'}))">
-          </div>
-          <h1 class="mt-4 text-2xl font-extrabold">Isaac Johnston</h1>
-          <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Founder @ IIP Holdings • UNC Charlotte • Eagle Scout</p>
-          <div class="mt-3 inline-flex items-center gap-2 text-xs text-slate-500">
-            <button id="themeToggle" class="px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700">🌗 Theme</button>
-            <a href="/resume.pdf" class="px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">Resume</a>
-          </div>
-        </div>
+  <header class="p-4 flex justify-end">
+    <button id="themeToggle" class="px-3 py-1 rounded-lg border border-slate-300 dark:border-slate-700">🌗 Theme</button>
+  </header>
 
-        <!-- Socials row -->
-        <div class="px-8 pt-4 grid grid-cols-5 gap-2 text-sm">
-          <a class="group py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-center hover:bg-slate-100 dark:hover:bg-slate-800" href="https://github.com/IsaacInPursuit" aria-label="GitHub">🐙<span class="sr-only">GitHub</span></a>
-            <a class="group py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-center hover:bg-slate-100 dark:hover:bg-slate-800" href="https://www.linkedin.com/in/isaacinpursuit/" aria-label="LinkedIn">in<span class="sr-only">LinkedIn</span></a>
-          <a class="group py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-center hover:bg-slate-100 dark:hover:bg-slate-800" href="mailto:isaacinpursuit@gmail.com" aria-label="Email">✉️<span class="sr-only">Email</span></a>
-          <a class="group py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-center hover:bg-slate-100 dark:hover:bg-slate-800" href="#contact" aria-label="Contact form">📝<span class="sr-only">Contact</span></a>
-          <a class="group py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-center hover:bg-slate-100 dark:hover:bg-slate-800" href="/links.vcf" aria-label="vCard">📇<span class="sr-only">vCard</span></a>
-        </div>
-
-        <!-- Links -->
-        <div class="p-8 space-y-3">
-          <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="https://isaacinpursuit.github.io/">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="font-semibold">Portfolio / Personal Site</div>
-                <div class="text-sm opacity-70">Projects, ventures, resume</div>
-              </div>
-              <div class="text-xl">↗</div>
-            </div>
-          </a>
-            <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="/fractal.html">
-              <div class="flex items-center justify-between">
-                <div>
-                  <div class="font-semibold">Fractal Demo</div>
-                  <div class="text-sm opacity-70">Canvas fractal with scroll</div>
-                </div>
-                <div class="text-xl">🌀</div>
-              </div>
-            </a>
-
-
-          <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="#farm">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="font-semibold">Farm Compliance MVP</div>
-                <div class="text-sm opacity-70">Multilingual onboarding & checklists</div>
-              </div>
-              <div class="text-xl">🌱</div>
-            </div>
-          </a>
-
-          <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="#bakd">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="font-semibold">Bakd Bros — THCA Mixes</div>
-                <div class="text-sm opacity-70">Distro & investor notes</div>
-              </div>
-              <div class="text-xl">🍪</div>
-            </div>
-          </a>
-
-          <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="#uncc">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="font-semibold">UNCC Student Network</div>
-                <div class="text-sm opacity-70">Jobs, events, recruiting pilots</div>
-              </div>
-              <div class="text-xl">🎓</div>
-            </div>
-          </a>
-
-          <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="/resume.pdf">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="font-semibold">Download Resume (PDF)</div>
-                <div class="text-sm opacity-70">One page</div>
-              </div>
-              <div class="text-xl">📄</div>
-            </div>
-          </a>
-
-          <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="mailto:isaacinpursuit@gmail.com">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="font-semibold">Email Me</div>
-                <div class="text-sm opacity-70">isaacinpursuit@gmail.com</div>
-              </div>
-              <div class="text-xl">✉️</div>
-            </div>
-          </a>
-        </div>
-
-        <!-- Contact form -->
-        <div id="contact" class="px-8 pb-8">
-          <form action="https://formspree.io/f/your-id" method="POST" class="space-y-3">
-            <div class="text-sm font-semibold">Quick message</div>
-            <input required type="text" name="name" placeholder="Your name" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent" />
-            <input required type="email" name="email" placeholder="you@example.com" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent" />
-            <textarea required name="message" rows="4" placeholder="What's up?" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"></textarea>
-            <button class="w-full px-4 py-3 rounded-xl bg-brand-600 text-white hover:bg-brand-700">Send</button>
-          </form>
-          <p class="mt-2 text-xs text-slate-500">Replace Formspree endpoint with your own or wire to a serverless function later.</p>
-        </div>
+  <main class="max-w-3xl mx-auto px-4 space-y-24">
+    <!-- Top Section -->
+    <section class="text-center fade-in">
+      <h1 class="text-4xl font-extrabold">Isaac Johnston</h1>
+      <p class="mt-2 text-lg text-slate-600 dark:text-slate-300">Entrepreneur • Real Estate and Finance • Startups</p>
+      <p class="mt-4 text-xl italic">“Grounded in faith. Focused on growth. Open to learning.”</p>
+      <div class="mt-6 flex flex-wrap justify-center gap-4">
+        <a href="#contact" class="px-5 py-2 rounded-lg bg-brand-600 text-white hover:bg-brand-700">Connect</a>
+        <a href="/resume.pdf" class="px-5 py-2 rounded-lg border border-brand-600 text-brand-600 hover:bg-brand-50 dark:hover:bg-slate-800">Resume</a>
+        <a href="https://calendly.com/isaacinpursuit/15min" class="px-5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">Book a Call</a>
       </div>
+    </section>
 
-      <!-- Footer -->
-      <div class="text-center mt-4 text-xs text-slate-500">© <span id="year"></span> IsaacInPursuit • Self‑hosted Beacons‑style page
+    <div class="my-12 text-center text-2xl">⸻</div>
+
+    <!-- Links Section -->
+    <section id="links" class="space-y-4">
+      <h2 class="text-2xl font-bold text-center">Links</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <a class="block rounded-xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800" href="#projects">
+          <div class="font-semibold">Portfolio / Personal Site</div>
+          <div class="text-sm opacity-70">Projects and resume</div>
+        </a>
+        <a class="block rounded-xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800" href="#farm">
+          <div class="font-semibold">Farm Compliance MVP</div>
+          <div class="text-sm opacity-70">Multilingual onboarding & checklists</div>
+        </a>
+        <a class="block rounded-xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800" href="#uncc">
+          <div class="font-semibold">UNCC Student Network</div>
+          <div class="text-sm opacity-70">Jobs, events, recruiting pilots</div>
+        </a>
+        <a class="block rounded-xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800" href="#cali">
+          <div class="font-semibold">Cali Baking MVP</div>
+          <div class="text-sm opacity-70">Food, e‑commerce, local growth</div>
+        </a>
+        <a class="block rounded-xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800" href="/resume.pdf">
+          <div class="font-semibold">Download Resume (PDF)</div>
+          <div class="text-sm opacity-70">One page</div>
+        </a>
+        <a class="block rounded-xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800" href="https://calendly.com/isaacinpursuit/15min">
+          <div class="font-semibold">Appointment Booking</div>
+          <div class="text-sm opacity-70">Schedule a call</div>
+        </a>
+        <a class="block rounded-xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800" href="mailto:isaacinpursuit@gmail.com">
+          <div class="font-semibold">Email Me</div>
+          <div class="text-sm opacity-70">isaacinpursuit@gmail.com</div>
+        </a>
       </div>
-    </div>
+    </section>
+
+    <div class="my-12 text-center text-2xl">⸻</div>
+
+    <!-- Projects Section -->
+    <section id="projects" class="space-y-4">
+      <h2 class="text-2xl font-bold">Projects</h2>
+      <ul class="list-disc pl-5 space-y-2">
+        <li><span class="font-semibold">Farm Compliance MVP:</span> Multilingual onboarding & checklists.</li>
+        <li><span class="font-semibold">UNCC Student Network:</span> Jobs, events, recruiting pilots.</li>
+        <li><span class="font-semibold">Cali Baking MVP:</span> Food, e‑commerce, local growth.</li>
+      </ul>
+    </section>
+
+    <div class="my-12 text-center text-2xl">⸻</div>
+
+    <!-- About Section -->
+    <section id="about" class="space-y-4">
+      <h2 class="text-2xl font-bold">About</h2>
+      <p>I build in real estate, finance, and startups. My faith in God guides me. I learn every day and welcome guidance. I work to create value with integrity.</p>
+    </section>
+
+    <div class="my-12 text-center text-2xl">⸻</div>
+
+    <!-- Contact Section -->
+    <section id="contact" class="space-y-4">
+      <h2 class="text-2xl font-bold">Contact</h2>
+      <form action="https://formspree.io/f/your-id" method="POST" class="space-y-3">
+        <input required type="text" name="name" placeholder="Name" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent" />
+        <input required type="email" name="email" placeholder="Email" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent" />
+        <textarea required name="message" rows="4" placeholder="Message" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"></textarea>
+        <button class="w-full px-4 py-3 rounded-xl bg-brand-600 text-white hover:bg-brand-700">Send</button>
+      </form>
+      <div class="pt-4 space-y-1">
+        <a class="block text-brand-600 hover:underline" href="https://www.linkedin.com/in/isaacinpursuit/">LinkedIn</a>
+        <a class="block text-brand-600 hover:underline" href="mailto:isaacinpursuit@gmail.com">Email</a>
+        <a class="block text-brand-600 hover:underline" href="/resume.pdf">Resume</a>
+        <a class="block text-brand-600 hover:underline" href="https://calendly.com/isaacinpursuit/15min">Calendar</a>
+      </div>
+    </section>
   </main>
+
+  <footer class="text-center mt-16 mb-6 text-xs text-slate-500">© <span id="year"></span> Isaac Johnston</footer>
 
   <script>
     // Theme persistence
