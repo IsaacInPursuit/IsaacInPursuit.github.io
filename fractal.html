@@ -2,7 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Golden Fractal</title>
+  <title>Golden Fractal — IsaacInPursuit</title>
+  <meta name="description" content="Scroll to grow a golden-ratio fractal demo built by Isaac Johnston." />
+  <meta property="og:title" content="Golden Fractal — IsaacInPursuit" />
+  <meta property="og:description" content="Interactive fractal visualization that expands as you scroll." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://isaacinpursuit.github.io/fractal.html" />
+  <meta property="og:image" content="/og.png" />
+  <meta property="og:site_name" content="IsaacInPursuit" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Golden Fractal — IsaacInPursuit" />
+  <meta name="twitter:description" content="Interactive fractal visualization that expands as you scroll." />
+  <meta name="twitter:image" content="https://isaacinpursuit.github.io/og.png" />
+  <meta name="author" content="Isaac Johnston" />
   <style>
     body {margin:0; overflow-x:hidden; background:#000; color:#fff; font-family:sans-serif;}
     canvas {position:fixed; top:0; left:0; display:block; z-index:-1;}
@@ -14,8 +26,8 @@
   </style>
 </head>
 <body>
-  <div class="spin"></div>
-  <canvas id="fractal"></canvas>
+  <div class="spin" aria-hidden="true"></div>
+  <canvas id="fractal" aria-hidden="true"></canvas>
   <section class="show" style="background:#111;">Scroll to grow the golden fractal 🍃</section>
   <section class="hidden" style="background:#222;">Math: φ = (1+√5)/2 rules the lengths.</section>
   <section class="hidden" style="background:#333;">History: Egyptians, Greeks and da Vinci sought this harmony.</section>
