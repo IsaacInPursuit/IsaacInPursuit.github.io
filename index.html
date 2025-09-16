@@ -40,6 +40,73 @@
     @media (prefers-reduced-motion: reduce) {
       .fade-in, .floating { animation-duration: 0.01ms; animation-iteration-count: 1 }
     }
+    :root { --fract-bg:#0b1120; --fract-fg:#e0f2fe }
+    .dark { --fract-bg:#020617; --fract-fg:#f8fafc }
+    #fractalOverlay {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: clamp(5.5rem, 8vw, 8.5rem);
+      display: flex;
+      justify-content: center;
+      padding: 0 1.5rem;
+      pointer-events: none;
+      z-index: 20;
+      opacity: 0;
+      transform: translateY(0);
+      transition: opacity .3s ease, transform .45s ease;
+      will-change: transform, opacity;
+    }
+    #fractalOverlay[data-enabled="true"] { opacity: 1 }
+    #fractalOverlay canvas {
+      width: min(100%, 1100px);
+      height: auto;
+      border-radius: 1.75rem;
+      box-shadow: 0 32px 80px rgba(15,23,42,.22);
+      background: radial-gradient(circle at top, rgba(255,255,255,.08), rgba(15,23,42,.35));
+    }
+    .dark #fractalOverlay canvas {
+      box-shadow: 0 32px 120px rgba(15,23,42,.55);
+      background: radial-gradient(circle at top, rgba(148,163,184,.08), rgba(2,6,23,.6));
+    }
+    button[data-fractal-toggle][data-state="active"] {
+      background-color: rgb(14 116 144);
+      border-color: rgba(8,145,178,.9);
+      color: #fff;
+      box-shadow: 0 14px 30px rgba(8,145,178,.28);
+    }
+    .dark button[data-fractal-toggle][data-state="active"] {
+      background-color: rgba(8,145,178,.85);
+      border-color: rgba(8,145,178,.75);
+      color: #f8fafc;
+      box-shadow: 0 16px 38px rgba(8,145,178,.42);
+    }
+    button[data-fractal-mode] {
+      position: relative;
+      overflow: hidden;
+    }
+    button[data-fractal-mode]::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      opacity: .55;
+      transition: opacity .3s ease;
+      pointer-events: none;
+    }
+    button[data-fractal-mode][data-mode="aurora"]::after {
+      background: linear-gradient(120deg, rgba(56,189,248,.75), rgba(167,139,250,.65));
+    }
+    button[data-fractal-mode][data-mode="kaleidoscope"]::after {
+      background: linear-gradient(135deg, rgba(251,191,36,.75), rgba(244,114,182,.65));
+    }
+    button[data-fractal-mode][data-mode="golden"]::after {
+      background: linear-gradient(135deg, rgba(34,197,94,.72), rgba(234,179,8,.7));
+    }
+    button[data-fractal-mode]:hover::after,
+    button[data-fractal-mode]:focus-visible::after {
+      opacity: .88;
+    }
   </style>
 </head>
 <body class="relative min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-900 antialiased dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
@@ -50,11 +117,27 @@
   </div>
 
   <header data-header class="sticky top-0 z-30 border-b border-transparent transition-all duration-300">
-    <div class="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 py-4 md:py-6">
+    <div class="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-4 md:flex-nowrap md:py-6">
       <a href="/links.html" class="flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-sm font-semibold tracking-wide text-slate-700 backdrop-blur dark:bg-slate-900/60 dark:text-slate-200">
         <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-white">IJ</span>
         Isaac Johnston
       </a>
+      <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+        <button id="themeToggle" type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200" title="Toggle light and dark theme">
+          <span aria-hidden="true">🌗</span>
+          Theme
+        </button>
+        <button data-fractal-toggle type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200" title="Launch the interactive fractal demo" data-state="inactive" aria-pressed="false">
+          <span aria-hidden="true">✨</span>
+          <span data-fractal-toggle-label>Launch demo</span>
+        </button>
+        <button data-fractal-mode type="button" class="hidden items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200 sm:inline-flex" data-mode="aurora" title="Switch fractal style">
+          Mode: Aurora drift
+        </button>
+        <button data-fractal-shuffle type="button" class="hidden items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200 sm:inline-flex" title="Generate a new fractal seed">
+          Shuffle
+        </button>
+      </div>
     </div>
     <nav class="mx-auto flex w-full max-w-5xl items-center justify-center gap-4 px-4 pb-3 text-sm font-medium text-slate-600 dark:text-slate-300 md:hidden">
       <a class="transition hover:text-brand-600 dark:hover:text-brand-400" href="#focus">Focus</a>
@@ -63,6 +146,10 @@
       <a class="transition hover:text-brand-600 dark:hover:text-brand-400" href="#contact">Contact</a>
     </nav>
   </header>
+
+  <div id="fractalOverlay" data-enabled="false" aria-hidden="true">
+    <canvas id="fractalCanvas" aria-hidden="true"></canvas>
+  </div>
 
   <main class="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-24 px-4 pb-24">
     <section id="hero" class="fade-in relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white/80 p-8 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60 md:p-12">
@@ -391,6 +478,537 @@
       const isDark = document.documentElement.classList.toggle('dark');
       localStorage.theme = isDark ? 'dark' : 'light';
     })
+
+    // Fractal demo overlay
+    (() => {
+      const wrap = document.getElementById('fractalOverlay');
+      const canvas = document.getElementById('fractalCanvas');
+      if (!wrap || !canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const toggleButton = document.querySelector('[data-fractal-toggle]');
+      const modeButton = document.querySelector('[data-fractal-mode]');
+      const shuffleButton = document.querySelector('[data-fractal-shuffle]');
+      const themeButton = document.getElementById('themeToggle');
+
+      const MODE_STORAGE_KEY = 'fractaldemo:mode';
+      const FRACTAL_MODES = ['aurora', 'kaleidoscope', 'golden'];
+      const FRACTAL_MODE_LABELS = {
+        aurora: 'Aurora drift',
+        kaleidoscope: 'Kaleidoscope',
+        golden: 'Golden bloom',
+      };
+      const FRACTAL_MODE_DESCRIPTIONS = {
+        aurora: 'Layered aurora noise fields',
+        kaleidoscope: 'Mirrored sacred-geometry kaleidoscope',
+        golden: 'Golden-ratio phyllotaxis tree',
+      };
+
+      function mulberry32(seed) {
+        return function () {
+          let t = (seed += 0x6d2b79f5);
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function makeNoise(seed) {
+        const rand = mulberry32(seed);
+        const gradients = [];
+        for (let i = 0; i < 256; i++) {
+          gradients.push({ x: rand() * 2 - 1, y: rand() * 2 - 1 });
+        }
+        const perm = new Uint8Array(512);
+        for (let i = 0; i < 512; i++) perm[i] = i & 255;
+        for (let i = 0; i < 256; i++) {
+          const j = (rand() * 256) | 0;
+          const tmp = perm[i];
+          perm[i] = perm[j];
+          perm[j] = tmp;
+          perm[i + 256] = perm[i];
+        }
+        const fade = t => t * t * t * (t * (t * 6 - 15) + 10);
+        const lerp = (a, b, t) => a + t * (b - a);
+
+        function grad(ix, iy, x, y) {
+          const g = gradients[perm[(ix + perm[iy & 255]) & 255]];
+          return g.x * (x - ix) + g.y * (y - iy);
+        }
+
+        return (x, y) => {
+          const x0 = Math.floor(x);
+          const y0 = Math.floor(y);
+          const u = fade(x - x0);
+          const v = fade(y - y0);
+          const n00 = grad(x0, y0, x, y);
+          const n10 = grad(x0 + 1, y0, x, y);
+          const n01 = grad(x0, y0 + 1, x, y);
+          const n11 = grad(x0 + 1, y0 + 1, x, y);
+          return lerp(lerp(n00, n10, u), lerp(n01, n11, u), v);
+        };
+      }
+
+      function randomSeed() {
+        if (globalThis.crypto && typeof globalThis.crypto.getRandomValues === 'function') {
+          const values = new Uint32Array(1);
+          globalThis.crypto.getRandomValues(values);
+          return values[0];
+        }
+        return (Math.random() * 0xffffffff) >>> 0;
+      }
+
+      function parseCssColor(value) {
+        const color = value.trim();
+        if (!color) return null;
+        const hexMatch = color.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+        if (hexMatch) {
+          let hex = hexMatch[1];
+          if (hex.length === 3) {
+            hex = hex
+              .split('')
+              .map(char => char + char)
+              .join('');
+          }
+          const r = parseInt(hex.slice(0, 2), 16);
+          const g = parseInt(hex.slice(2, 4), 16);
+          const b = parseInt(hex.slice(4, 6), 16);
+          if (Number.isFinite(r) && Number.isFinite(g) && Number.isFinite(b)) {
+            return { r, g, b };
+          }
+        }
+        const rgbMatch = color.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*([\d.]+))?\s*\)$/i);
+        if (rgbMatch) {
+          const clamp = v => Math.max(0, Math.min(255, v | 0));
+          const r = clamp(parseInt(rgbMatch[1], 10));
+          const g = clamp(parseInt(rgbMatch[2], 10));
+          const b = clamp(parseInt(rgbMatch[3], 10));
+          if (Number.isFinite(r) && Number.isFinite(g) && Number.isFinite(b)) {
+            return { r, g, b };
+          }
+        }
+        return null;
+      }
+
+      function persistMode(value) {
+        try {
+          localStorage.setItem(MODE_STORAGE_KEY, value);
+        } catch (error) {
+          // Ignore storage write failures (private mode, etc.)
+        }
+      }
+
+      function loadStoredMode() {
+        try {
+          const stored = localStorage.getItem(MODE_STORAGE_KEY);
+          if (stored && FRACTAL_MODES.includes(stored)) {
+            return stored;
+          }
+        } catch (error) {
+          // Ignore storage read failures
+        }
+        return FRACTAL_MODES[Math.floor(Math.random() * FRACTAL_MODES.length)];
+      }
+
+      let seed = randomSeed();
+      let mode = loadStoredMode();
+      let noise = makeNoise(seed);
+      let enabled = false;
+      let dpr = 1;
+      let pendingFrame = false;
+      let latestScrollY = window.scrollY;
+      let reduceMotion = false;
+
+      const reduceMotionMedia = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+      if (reduceMotionMedia) {
+        reduceMotion = reduceMotionMedia.matches;
+        const handleReduceChange = event => {
+          reduceMotion = event.matches;
+          if (reduceMotion) {
+            wrap.style.transform = '';
+          } else if (enabled) {
+            handleScroll();
+          }
+          scheduleRender();
+        };
+        if (typeof reduceMotionMedia.addEventListener === 'function') {
+          reduceMotionMedia.addEventListener('change', handleReduceChange);
+        } else if (typeof reduceMotionMedia.addListener === 'function') {
+          reduceMotionMedia.addListener(handleReduceChange);
+        }
+      }
+
+      const schemeMedia = window.matchMedia?.('(prefers-color-scheme: dark)');
+      if (schemeMedia) {
+        const handleSchemeChange = () => scheduleRender();
+        if (typeof schemeMedia.addEventListener === 'function') {
+          schemeMedia.addEventListener('change', handleSchemeChange);
+        } else if (typeof schemeMedia.addListener === 'function') {
+          schemeMedia.addListener(handleSchemeChange);
+        }
+      }
+
+      let classObserver;
+      if (typeof MutationObserver !== 'undefined') {
+        classObserver = new MutationObserver(() => scheduleRender());
+        classObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        window.addEventListener(
+          'beforeunload',
+          () => {
+            classObserver?.disconnect();
+          },
+          { once: true }
+        );
+      }
+
+      function setSeed(value) {
+        seed = value >>> 0;
+        noise = makeNoise(seed);
+      }
+
+      function updateButtons() {
+        if (toggleButton) {
+          toggleButton.setAttribute('data-state', enabled ? 'active' : 'inactive');
+          toggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+          toggleButton.setAttribute('aria-label', enabled ? 'Hide fractal demo' : 'Launch fractal demo');
+          toggleButton.setAttribute('title', enabled ? 'Hide the interactive fractal demo' : 'Launch the interactive fractal demo');
+          const labelEl = toggleButton.querySelector('[data-fractal-toggle-label]');
+          if (labelEl) {
+            labelEl.textContent = enabled ? 'Hide demo' : 'Launch demo';
+          }
+        }
+        if (modeButton) {
+          modeButton.dataset.mode = mode;
+          modeButton.textContent = `Mode: ${FRACTAL_MODE_LABELS[mode]}`;
+          modeButton.setAttribute('title', `Switch fractal style – ${FRACTAL_MODE_DESCRIPTIONS[mode]}`);
+          modeButton.setAttribute('aria-label', `Fractal mode: ${FRACTAL_MODE_LABELS[mode]}`);
+        }
+        wrap.setAttribute('data-mode', mode);
+      }
+
+      function scheduleRender() {
+        if (!enabled || pendingFrame) return;
+        pendingFrame = true;
+        requestAnimationFrame(() => {
+          pendingFrame = false;
+          render();
+        });
+      }
+
+      function handleResize() {
+        if (!enabled) return;
+        const padding = window.innerWidth < 640 ? 28 : 48;
+        const availableWidth = Math.max(320, window.innerWidth - padding);
+        const width = Math.min(availableWidth, 1100);
+        const height = Math.max(320, Math.min(640, width * 0.62, window.innerHeight * 0.65));
+        dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        scheduleRender();
+      }
+
+      function handleScroll() {
+        if (!enabled) return;
+        latestScrollY = window.scrollY;
+        if (reduceMotion) {
+          wrap.style.transform = '';
+        } else {
+          wrap.style.transform = `translateY(${latestScrollY * 0.12}px)`;
+        }
+        scheduleRender();
+      }
+
+      function handleKeyDown(event) {
+        if (event.key === 'Escape') {
+          disable();
+        }
+      }
+
+      function enable() {
+        if (enabled) return;
+        enabled = true;
+        wrap.dataset.enabled = 'true';
+        wrap.setAttribute('aria-hidden', 'false');
+        setSeed(seed);
+        handleResize();
+        handleScroll();
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('keydown', handleKeyDown);
+        scheduleRender();
+        updateButtons();
+      }
+
+      function disable() {
+        if (!enabled) return;
+        enabled = false;
+        wrap.dataset.enabled = 'false';
+        wrap.setAttribute('aria-hidden', 'true');
+        wrap.style.transform = '';
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('keydown', handleKeyDown);
+        updateButtons();
+      }
+
+      function render() {
+        if (!enabled) return;
+        const width = canvas.width;
+        const height = canvas.height;
+        if (!width || !height) return;
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, width, height);
+        ctx.restore();
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const viewWidth = width / dpr;
+        const viewHeight = height / dpr;
+        const styles = getComputedStyle(document.documentElement);
+        const bg = styles.getPropertyValue('--fract-bg').trim() || '#0f172a';
+        const fgRaw = styles.getPropertyValue('--fract-fg').trim() || '#f8fafc';
+        const fgColor = parseCssColor(fgRaw) || { r: 248, g: 250, b: 252 };
+
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, viewWidth, viewHeight);
+
+        const scrollShift = ((latestScrollY % 2400) + 2400) / 2400;
+
+        switch (mode) {
+          case 'kaleidoscope':
+            renderKaleidoscope(viewWidth, viewHeight, fgColor, scrollShift);
+            break;
+          case 'golden':
+            renderGolden(viewWidth, viewHeight, fgColor, scrollShift);
+            break;
+          default:
+            renderAurora(viewWidth, viewHeight, fgColor, scrollShift);
+            break;
+        }
+
+        ctx.globalAlpha = 1;
+        const vignette = ctx.createRadialGradient(
+          viewWidth / 2,
+          viewHeight / 2,
+          12,
+          viewWidth / 2,
+          viewHeight / 2,
+          Math.max(viewWidth, viewHeight) / 1.15
+        );
+        vignette.addColorStop(0, 'rgba(0,0,0,0)');
+        vignette.addColorStop(1, 'rgba(2,6,23,0.22)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, viewWidth, viewHeight);
+      }
+
+      function renderAurora(viewWidth, viewHeight, fgColor, scrollShift) {
+        const step = Math.max(3.5, (4 * Math.max(1, Math.round(dpr))) / dpr);
+        ctx.save();
+        for (let y = 0; y < viewHeight; y += step) {
+          for (let x = 0; x < viewWidth; x += step) {
+            const sampleX = x * dpr * 0.85;
+            const sampleY = y * dpr * 0.85;
+            const n = noise(sampleX + seed * 0.00032, sampleY + seed * 0.00058);
+            const t = (n + 1) / 2;
+            const hue = (scrollShift * 360 + x * 0.18 + y * 0.12) % 360;
+            const lightness = 45 + t * 40;
+            const alpha = 0.32 + t * 0.55;
+            ctx.fillStyle = `hsla(${(hue + 360) % 360}, 82%, ${Math.min(82, Math.max(36, lightness))}%, ${alpha})`;
+            ctx.fillRect(x, y, step, step);
+          }
+        }
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = `rgba(${fgColor.r}, ${fgColor.g}, ${fgColor.b}, 0.12)`;
+        ctx.fillRect(0, 0, viewWidth, viewHeight);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.restore();
+      }
+
+      function renderKaleidoscope(viewWidth, viewHeight, fgColor, scrollShift) {
+        const step = Math.max(2.5, (3.6 * Math.max(1, Math.round(dpr))) / dpr);
+        const centerX = viewWidth / 2;
+        const centerY = viewHeight / 2;
+        const segmentAngle = (Math.PI * 2) / 6;
+        const paletteShift = (seed % 720) / 720 * 360 + scrollShift * 180;
+
+        ctx.save();
+        for (let y = 0; y < viewHeight; y += step) {
+          for (let x = 0; x < viewWidth; x += step) {
+            const dx = x - centerX;
+            const dy = y - centerY;
+            const radius = Math.hypot(dx, dy);
+            let angle = Math.atan2(dy, dx);
+            if (Number.isNaN(angle)) angle = 0;
+            angle = angle % segmentAngle;
+            if (angle < 0) angle += segmentAngle;
+            if (angle > segmentAngle / 2) angle = segmentAngle - angle;
+
+            const mirrorX = Math.cos(angle) * radius;
+            const mirrorY = Math.sin(angle) * radius;
+
+            const swirl = noise(mirrorX * 0.05 + seed * 0.00018, mirrorY * 0.05 + seed * 0.00018);
+            const t = (swirl + 1) / 2;
+            const hue = (paletteShift + (angle / segmentAngle) * 360 + radius * 0.22) % 360;
+            const lightness = 40 + 32 * Math.sin(radius * 0.045 + t * Math.PI);
+            const alpha = 0.25 + 0.45 * Math.pow(t, 1.15);
+            ctx.fillStyle = `hsla(${(hue + 360) % 360}, 78%, ${Math.max(32, Math.min(72, lightness))}%, ${alpha})`;
+            ctx.fillRect(x, y, step, step);
+          }
+        }
+        ctx.globalAlpha = 0.55;
+        ctx.strokeStyle = `rgba(${fgColor.r}, ${fgColor.g}, ${fgColor.b}, 0.75)`;
+        ctx.lineWidth = Math.max(1, viewWidth * 0.0014);
+        ctx.beginPath();
+        const reach = Math.max(viewWidth, viewHeight);
+        for (let i = 0; i < 6; i++) {
+          const theta = (i / 6) * Math.PI * 2;
+          ctx.moveTo(centerX, centerY);
+          ctx.lineTo(centerX + Math.cos(theta) * reach, centerY + Math.sin(theta) * reach);
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+
+      function renderGolden(viewWidth, viewHeight, fgColor, scrollShift) {
+        ctx.save();
+        const centerX = viewWidth / 2;
+        const centerY = viewHeight / 2;
+        const phi = (1 + Math.sqrt(5)) / 2;
+        const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+        const rotation = ((seed % 360) * Math.PI) / 180;
+        const offset = ((seed >>> 5) % 97) / 97;
+        const maxRadius = Math.min(viewWidth, viewHeight) * 0.48;
+        const pointCount = 460;
+        const baseHue = (seed % 360 + scrollShift * 240) % 360;
+
+        const glow = ctx.createRadialGradient(
+          centerX,
+          centerY,
+          Math.min(viewWidth, viewHeight) * 0.1,
+          centerX,
+          centerY,
+          Math.max(viewWidth, viewHeight)
+        );
+        glow.addColorStop(0, `rgba(${fgColor.r}, ${fgColor.g}, ${fgColor.b}, 0.22)`);
+        glow.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, viewWidth, viewHeight);
+
+        for (let i = 0; i < pointCount; i++) {
+          const angle = rotation + i * goldenAngle;
+          const radius = Math.sqrt((i + offset) / pointCount) * maxRadius;
+          const px = centerX + Math.cos(angle) * radius;
+          const py = centerY + Math.sin(angle) * radius;
+          const falloff = 1 - radius / maxRadius;
+          const alpha = 0.18 + 0.55 * Math.max(0, falloff);
+          const hue = (baseHue + i * 0.72 + scrollShift * 180) % 360;
+          const lightness = 48 + falloff * 44;
+          const size = 0.9 + falloff * 3.6;
+          ctx.beginPath();
+          ctx.fillStyle = `hsla(${(hue + 360) % 360}, 86%, ${Math.max(38, Math.min(78, lightness))}%, ${alpha})`;
+          ctx.arc(px, py, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        const trunkWidth = Math.max(1.4, viewWidth * 0.0026);
+        const sway = 0.28 + 0.14 * Math.sin(seed * 0.0003 + scrollShift * Math.PI * 2);
+        const depthLimit = 9;
+        const baseLength = Math.min(viewWidth, viewHeight) / 3.2;
+
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = `rgba(${fgColor.r}, ${fgColor.g}, ${fgColor.b}, 0.55)`;
+        ctx.lineWidth = trunkWidth * 1.08;
+
+        function branch(x, y, length, angle, depth) {
+          if (depth > depthLimit || length < 4) return;
+          const tipX = x + length * Math.cos(angle);
+          const tipY = y - length * Math.sin(angle);
+
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(tipX, tipY);
+          ctx.stroke();
+
+          const nextLength = length / phi;
+          const accentHue = (baseHue + depth * 22 + scrollShift * 180) % 360;
+          ctx.save();
+          ctx.strokeStyle = `hsla(${accentHue}, 88%, 70%, ${0.28 + Math.max(0, 0.18 * (1 - depth / depthLimit))})`;
+          ctx.lineWidth = Math.max(0.8, trunkWidth * Math.pow(0.78, depth + 1));
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(tipX, tipY);
+          ctx.stroke();
+          ctx.restore();
+
+          branch(tipX, tipY, nextLength, angle + sway, depth + 1);
+          branch(tipX, tipY, nextLength, angle - sway, depth + 1);
+          if (depth % 2 === 0) {
+            branch(tipX, tipY, nextLength / phi, angle + sway * 0.35, depth + 2);
+          }
+        }
+
+        branch(centerX, viewHeight * 0.92, baseLength, Math.PI / 2, 0);
+        ctx.restore();
+      }
+
+      toggleButton?.addEventListener('click', () => {
+        if (enabled) {
+          disable();
+        } else {
+          enable();
+        }
+      });
+
+      modeButton?.addEventListener('click', () => {
+        const index = FRACTAL_MODES.indexOf(mode);
+        const next = FRACTAL_MODES[(index + 1) % FRACTAL_MODES.length];
+        mode = next;
+        persistMode(next);
+        updateButtons();
+        if (!enabled) {
+          enable();
+        } else {
+          scheduleRender();
+        }
+      });
+
+      shuffleButton?.addEventListener('click', () => {
+        setSeed(randomSeed());
+        if (!enabled) {
+          enable();
+        } else {
+          scheduleRender();
+        }
+      });
+
+      shuffleButton?.setAttribute('aria-label', 'Shuffle fractal seed');
+
+      themeButton?.addEventListener('click', () => {
+        if (enabled) {
+          requestAnimationFrame(() => scheduleRender());
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (enabled && document.visibilityState === 'visible') {
+          scheduleRender();
+        }
+      });
+
+      window.addEventListener('pageshow', event => {
+        if (event.persisted && enabled) {
+          handleResize();
+          scheduleRender();
+        }
+      });
+
+      updateButtons();
+    })();
 
     // Header surface effect
     const headerEl = document.querySelector('[data-header]');
