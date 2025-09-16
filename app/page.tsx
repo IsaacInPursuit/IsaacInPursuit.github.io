@@ -1,3 +1,5 @@
+import ContactForm from "../components/ContactForm";
+
 export default function Page() {
   const year = new Date().getFullYear();
   return (
@@ -123,41 +125,7 @@ export default function Page() {
       {/* CONTACT */}
       <section id="contact" className="mt-10">
         <h2 className="text-2xl font-semibold">Contact</h2>
-        <form id="contact-form" className="mt-4 space-y-3">
-          <input className="w-full rounded-md border p-2" name="name" placeholder="Name" required />
-          <input className="w-full rounded-md border p-2" name="email" placeholder="Email" type="email" required />
-          <textarea className="w-full rounded-md border p-2" name="message" rows={5} placeholder="Message" required />
-          <button className="rounded-md bg-[#0A2239] px-4 py-2 text-white" type="submit">Send</button>
-          <p id="contact-ok" className="hidden text-green-700 mt-2">Thanks, I will get back to you soon.</p>
-        </form>
-
-        {/* Inline script to post to Apps Script */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-(function(){
-  var f = document.getElementById("contact-form");
-  if(!f) return;
-  f.addEventListener("submit", async function(e){
-    e.preventDefault();
-    var payload = { name: f.name.value, email: f.email.value, message: f.message.value };
-    try {
-      await fetch("PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(payload)
-      });
-      f.reset();
-      document.getElementById("contact-ok").classList.remove("hidden");
-    } catch(e){
-      console.error(e);
-      alert("Error sending message. Try again later.");
-    }
-  });
-})();
-          `,
-          }}
-        />
+        <ContactForm />
       </section>
 
       <footer className="my-16 text-center text-sm text-neutral-500">
