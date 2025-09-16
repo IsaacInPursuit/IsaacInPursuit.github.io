@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Isaac Johnston</title>
   <meta name="description" content="Entrepreneur in real estate, finance, and startups." />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self' https://formspree.io; frame-src https://forms.gle https://docs.google.com; base-uri 'self'; form-action 'self' https://formspree.io;"
+  />
   <meta property="og:title" content="Isaac Johnston" />
   <meta property="og:description" content="Grounded in service. Focused on growth. Open to learning." />
   <meta property="og:type" content="website" />
@@ -21,11 +25,38 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    rel="preload"
+    as="style"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    crossorigin
+  >
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Styles -->
+  <link rel="preload" href="/styles/tailwind.css" as="style">
   <link rel="stylesheet" href="/styles/tailwind.css">
   <style>
+    .skip-link {
+      position: absolute;
+      top: 0.75rem;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0.65rem 1.25rem;
+      border-radius: 9999px;
+      background: #0f172a;
+      color: #f8fafc;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      z-index: 50;
+    }
+    .skip-link:focus {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, 0);
+    }
     .fade-in { animation: fadeIn .6s ease both }
     @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
     .floating { animation: float 14s ease-in-out infinite alternate }
@@ -37,63 +68,128 @@
     .dark { --fract-bg:#020617; --fract-fg:#f8fafc }
     #fractalOverlay {
       position: fixed;
-      left: 0;
-      right: 0;
-      top: clamp(5.5rem, 8vw, 8.5rem);
+      bottom: clamp(1.25rem, 3vw, 2rem);
+      right: clamp(1rem, 4vw, 2.5rem);
       display: flex;
-      justify-content: center;
-      padding: 0 1.5rem;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.75rem;
+      padding: 0;
       pointer-events: none;
       z-index: 20;
       opacity: 0;
-      transform: translateY(0);
-      transition: opacity .3s ease, transform .45s ease;
+      transform: translateY(12px);
+      transition: opacity .3s ease, transform .3s ease;
       will-change: transform, opacity;
     }
     #fractalOverlay[data-enabled="true"] {
       opacity: 1;
       pointer-events: auto;
+      transform: translateY(0);
     }
     #fractalOverlay .fractal-overlay-shell {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
       gap: 0.75rem;
-      width: min(100%, 1100px);
+      width: min(100%, 520px);
+      pointer-events: auto;
+    }
+    #fractalOverlay .fractal-overlay-panel {
+      width: clamp(260px, 68vw, 420px);
+      border-radius: 1.5rem;
+      border: 1px solid rgba(148,163,184,.45);
+      background: rgba(15,23,42,.78);
+      color: var(--fract-fg);
+      padding: 1rem;
+      box-shadow: 0 22px 64px rgba(15,23,42,.45);
+      backdrop-filter: blur(18px);
+    }
+    .dark #fractalOverlay .fractal-overlay-panel {
+      border-color: rgba(148,163,184,.3);
+      background: rgba(2,6,23,.78);
+      box-shadow: 0 32px 80px rgba(2,6,23,.55);
+    }
+    #fractalOverlay .fractal-overlay-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    #fractalOverlay .fractal-overlay-title {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    #fractalOverlay .fractal-overlay-title span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    #fractalOverlay .fractal-overlay-actions {
+      display: inline-flex;
+      gap: 0.4rem;
+    }
+    #fractalOverlay .fractal-overlay-actions button {
+      padding: 0.4rem 0.75rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(148,163,184,.35);
+      background: rgba(15,23,42,.68);
+      color: inherit;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      transition: border-color .2s ease, background .2s ease, transform .2s ease;
+    }
+    #fractalOverlay .fractal-overlay-actions button:hover,
+    #fractalOverlay .fractal-overlay-actions button:focus-visible {
+      border-color: rgba(14,165,233,.6);
+      background: rgba(14,165,233,.18);
+      transform: translateY(-1px);
+      outline: none;
+    }
+    #fractalOverlay .fractal-overlay-copy {
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: rgba(226,232,240,.9);
+      margin: 0 0 0.75rem;
     }
     #fractalOverlay canvas {
       width: 100%;
       height: auto;
-      border-radius: 1.75rem;
-      box-shadow: 0 32px 80px rgba(15,23,42,.22);
+      border-radius: 1.25rem;
+      box-shadow: 0 28px 72px rgba(15,23,42,.35);
       background: radial-gradient(circle at top, rgba(255,255,255,.08), rgba(15,23,42,.35));
     }
     .dark #fractalOverlay canvas {
-      box-shadow: 0 32px 120px rgba(15,23,42,.55);
-      background: radial-gradient(circle at top, rgba(148,163,184,.08), rgba(2,6,23,.6));
+      box-shadow: 0 28px 96px rgba(2,6,23,.55);
+      background: radial-gradient(circle at top, rgba(148,163,184,.12), rgba(2,6,23,.62));
     }
     #fractalOverlay .fractal-overlay-link {
-      align-self: flex-end;
+      margin-top: 0.85rem;
       display: inline-flex;
       align-items: center;
       gap: 0.45rem;
-      padding: 0.45rem 0.9rem;
+      padding: 0.5rem 1rem;
       border-radius: 9999px;
-      border: 1px solid rgba(148,163,184,.45);
-      background: rgba(15,23,42,.72);
+      border: 1px solid rgba(148,163,184,.35);
+      background: rgba(15,23,42,.68);
       color: var(--fract-fg);
       text-decoration: none;
       font-size: 0.85rem;
       font-weight: 600;
       letter-spacing: 0.02em;
-      backdrop-filter: blur(14px);
-      box-shadow: 0 20px 48px rgba(2,6,23,.38);
       transition: background .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease;
     }
     .dark #fractalOverlay .fractal-overlay-link {
-      border-color: rgba(148,163,184,.35);
-      background: rgba(15,23,42,.78);
-      box-shadow: 0 28px 64px rgba(2,6,23,.55);
+      border-color: rgba(148,163,184,.3);
+      background: rgba(15,23,42,.7);
+      box-shadow: 0 20px 48px rgba(2,6,23,.45);
       color: var(--fract-fg);
     }
     #fractalOverlay .fractal-overlay-link:hover,
@@ -101,8 +197,61 @@
       transform: translateY(-1px);
       border-color: rgba(8,145,178,.55);
       background: rgba(8,145,178,.2);
-      box-shadow: 0 30px 80px rgba(8,145,178,.35);
+      box-shadow: 0 26px 72px rgba(8,145,178,.35);
       outline: none;
+    }
+    #fractalOverlay .fractal-overlay-fab {
+      display: none;
+      pointer-events: auto;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(148,163,184,.45);
+      background: rgba(15,23,42,.78);
+      color: var(--fract-fg);
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      box-shadow: 0 18px 48px rgba(2,6,23,.48);
+      transition: border-color .25s ease, background .25s ease, transform .25s ease;
+    }
+    #fractalOverlay .fractal-overlay-fab:hover,
+    #fractalOverlay .fractal-overlay-fab:focus-visible {
+      border-color: rgba(8,145,178,.6);
+      background: rgba(8,145,178,.22);
+      transform: translateY(-1px);
+      outline: none;
+    }
+    #fractalOverlay[data-enabled="true"][data-collapsed="true"] .fractal-overlay-shell {
+      display: none;
+    }
+    #fractalOverlay[data-enabled="true"][data-collapsed="true"] .fractal-overlay-fab {
+      display: inline-flex;
+    }
+    @media (max-width: 640px) {
+      #fractalOverlay {
+        right: 1rem;
+        bottom: 1rem;
+      }
+      #fractalOverlay .fractal-overlay-panel {
+        width: min(88vw, 360px);
+        padding: 0.85rem;
+      }
+      #fractalOverlay .fractal-overlay-actions button {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.7rem;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #fractalOverlay {
+        transition: none;
+      }
+      #fractalOverlay .fractal-overlay-actions button,
+      #fractalOverlay .fractal-overlay-link,
+      #fractalOverlay .fractal-overlay-fab {
+        transition: none;
+      }
     }
     button[data-fractal-toggle][data-state="active"] {
       background-color: rgb(14 116 144);
@@ -119,6 +268,7 @@
   </style>
 </head>
 <body class="relative min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-900 antialiased dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
+  <a class="skip-link" href="#mainContent">Skip to main content</a>
   <div class="pointer-events-none absolute inset-0 overflow-hidden">
     <div class="floating absolute -top-36 right-12 h-72 w-72 rounded-full bg-brand-500/10 blur-3xl dark:bg-brand-500/20"></div>
     <div class="floating absolute bottom-0 left-[-6rem] h-64 w-64 rounded-full bg-brand-500/5 blur-3xl dark:bg-brand-500/15"></div>
@@ -150,24 +300,41 @@
     </nav>
   </header>
 
-  <div id="fractalOverlay" data-enabled="false" aria-hidden="true">
-    <div class="fractal-overlay-shell">
-      <canvas id="fractalCanvas" aria-hidden="true"></canvas>
-      <a class="fractal-overlay-link" href="/math-gallery.html">
-        Explore the full math demo gallery
-        <span aria-hidden="true">→</span>
-      </a>
+  <div id="fractalOverlay" data-enabled="false" data-collapsed="false" aria-hidden="true">
+    <div class="fractal-overlay-shell" role="dialog" aria-modal="false" aria-label="Fractal zoom preview panel">
+      <div class="fractal-overlay-panel">
+        <div class="fractal-overlay-header">
+          <div class="fractal-overlay-title">
+            <span><span aria-hidden="true">✨</span> Fractal zoom lab</span>
+            <strong class="text-sm">Playful math meets brand storytelling.</strong>
+          </div>
+          <div class="fractal-overlay-actions">
+            <button type="button" data-fractal-collapse aria-expanded="true">Minimize</button>
+            <button type="button" data-fractal-close>Close</button>
+          </div>
+        </div>
+        <p class="fractal-overlay-copy">Scroll or pinch to explore a Mandelbrot zoom that reflects my love for operational curiosity and patient craftsmanship.</p>
+        <canvas id="fractalCanvas" role="img" aria-label="Animated Mandelbrot fractal preview"></canvas>
+        <a class="fractal-overlay-link" href="/math-gallery.html" aria-label="Open the full math demo gallery">
+          Explore the full math demo gallery
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
     </div>
+    <button type="button" class="fractal-overlay-fab" data-fractal-expand aria-expanded="false" aria-label="Expand the fractal preview panel">
+      <span aria-hidden="true">✨</span>
+      <span>Show fractal preview</span>
+    </button>
   </div>
 
-  <main class="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-24 px-4 pb-24">
+  <main id="mainContent" role="main" class="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-24 px-4 pb-24">
     <section id="hero" class="fade-in relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white/80 p-8 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60 md:p-12">
       <div class="floating pointer-events-none absolute -top-24 left-1/3 h-60 w-60 rounded-full bg-brand-500/10 blur-3xl dark:bg-brand-500/20"></div>
       <div class="relative grid gap-12 md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] md:items-start">
         <div class="space-y-7">
           <span class="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-700 dark:border-brand-500/40 dark:bg-brand-500/10 dark:text-brand-200">Now building</span>
           <h1 class="text-4xl font-extrabold leading-tight text-slate-900 dark:text-white md:text-5xl">Operator-minded builder helping teams launch resilient ventures.</h1>
-          <p class="text-lg text-slate-600 dark:text-slate-300">I partner with founders, property leaders, and community builders to move from idea to traction. My approach blends capital strategy, product experimentation, and operational rigor, grounded in clarity and integrity.</p>
+          <p class="text-lg leading-relaxed text-slate-600 dark:text-slate-300 max-w-[62ch]">I partner with founders, property leaders, and community builders to move from idea to traction. My approach blends capital strategy, product experimentation, and operational rigor, grounded in clarity and integrity.</p>
           <div class="flex flex-wrap gap-3">
             <a href="https://calendar.app.google/V6WfbjRRDxbFr6X69" class="inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">Book a 15‑min call</a>
             <a href="#projects" class="inline-flex items-center gap-2 rounded-full border border-transparent bg-slate-900/90 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-900 dark:bg-white/10 dark:text-white dark:hover:bg-white/20">Explore active projects</a>
@@ -193,7 +360,7 @@
               <span class="inline-flex items-center gap-2 rounded-full bg-brand-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-200"><span aria-hidden="true">⚡️</span> Current focus</span>
               <span class="text-xs text-slate-500 dark:text-slate-400">Updated weekly</span>
             </div>
-            <p class="mt-4 text-sm text-slate-600 dark:text-slate-300">These are the hands-on sprints I’m running inside the initiatives detailed in the Projects section below. Consider them the in-flight tasks powering each venture’s status.</p>
+            <p class="mt-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300">These are the hands-on sprints I’m running inside the initiatives detailed in the Projects section below. Consider them the in-flight tasks powering each venture’s status.</p>
             <ul class="mt-6 space-y-4 text-sm text-slate-600 dark:text-slate-300">
               <li class="flex gap-3">
                 <span class="mt-1 text-brand-600">▹</span>
@@ -210,7 +377,7 @@
             </ul>
             <div class="mt-8 rounded-2xl border border-dashed border-brand-500/40 bg-brand-500/5 p-5 text-sm text-slate-600 dark:border-brand-500/30 dark:text-slate-200">
               <p class="font-semibold text-brand-700 dark:text-brand-200">Exploring</p>
-              <p class="mt-1">Angel-backed real estate plays, community revitalization projects, and operator-in-residence opportunities.</p>
+              <p class="mt-1 leading-relaxed">Angel-backed real estate plays, community revitalization projects, and operator-in-residence opportunities.</p>
             </div>
           </div>
         </div>
@@ -221,7 +388,7 @@
       <div class="space-y-2 text-center">
         <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-600 dark:text-brand-300">Focus areas</p>
         <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Where I create leverage</h2>
-        <p class="mx-auto max-w-3xl text-base text-slate-600 dark:text-slate-300">My sweet spot is collaborating with founders and operators who need a strategic generalist: someone who can model capital stacks, ship product experiments, and activate community distribution.</p>
+        <p class="mx-auto max-w-3xl text-base leading-relaxed text-slate-600 dark:text-slate-300">My sweet spot is collaborating with founders and operators who need a strategic generalist: someone who can model capital stacks, ship product experiments, and activate community distribution.</p>
       </div>
       <div class="grid gap-6 md:grid-cols-2">
         <article class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60">
@@ -229,28 +396,28 @@
             <span class="text-2xl">🏢</span>
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Real estate &amp; capital strategy</h3>
           </div>
-          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Underwriting, creative financing structures, and community partnerships to turn underutilized assets into thriving hubs.</p>
+          <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Underwriting, creative financing structures, and community partnerships to turn underutilized assets into thriving hubs.</p>
         </article>
         <article class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60">
           <div class="flex items-center gap-3 text-brand-600 dark:text-brand-300">
             <span class="text-2xl">🛠️</span>
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Product &amp; growth experimentation</h3>
           </div>
-          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Rapid sprints, customer interviews, and data-informed pilots that validate demand before scaling operations.</p>
+          <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Rapid sprints, customer interviews, and data-informed pilots that validate demand before scaling operations.</p>
         </article>
         <article class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60">
           <div class="flex items-center gap-3 text-brand-600 dark:text-brand-300">
             <span class="text-2xl">🤝</span>
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Community &amp; partnerships</h3>
           </div>
-          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Building coalitions across universities, small businesses, and local communities to amplify opportunity.</p>
+          <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Building coalitions across universities, small businesses, and local communities to amplify opportunity.</p>
         </article>
         <article class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60">
           <div class="flex items-center gap-3 text-brand-600 dark:text-brand-300">
             <span class="text-2xl">🧭</span>
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Operational excellence</h3>
           </div>
-          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Designing checklists, onboarding flows, and playbooks that keep teams accountable to mission and metrics.</p>
+          <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Designing checklists, onboarding flows, and playbooks that keep teams accountable to mission and metrics.</p>
         </article>
       </div>
     </section>
@@ -260,7 +427,7 @@
         <div>
           <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-600 dark:text-brand-300">Projects</p>
           <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Building with operators in the field</h2>
-          <p class="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">Status badges reflect where each initiative sits today, complementing the “Current focus” sprints above so you can see both the week-to-week work and the broader milestone.</p>
+          <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">Status badges reflect where each initiative sits today, complementing the “Current focus” sprints above so you can see both the week-to-week work and the broader milestone.</p>
         </div>
         <a href="#contact" class="inline-flex items-center gap-2 text-sm font-semibold text-brand-600 transition hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200">Share an opportunity →</a>
       </div>
@@ -270,7 +437,7 @@
             <h3 class="text-xl font-semibold text-slate-900 dark:text-white">IIP Private Holdings, LLC</h3>
             <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100">Active</span>
           </div>
-          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Investment and management vehicle exploring small business acquisitions and shared services.</p>
+          <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Investment and management vehicle exploring small business acquisitions and shared services.</p>
           <ul class="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300">
             <li class="flex gap-2"><span class="text-brand-600">•</span> Evaluating service and real-asset deals across the Southeast.</li>
             <li class="flex gap-2"><span class="text-brand-600">•</span> Building a network of operators and capital partners.</li>
@@ -282,7 +449,7 @@
             <h3 class="text-xl font-semibold text-slate-900 dark:text-white">Farm Compliance MVP</h3>
             <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-500/20 dark:text-amber-100">In development</span>
           </div>
-          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">A multilingual onboarding and audit preparation toolkit in build-mode to keep growers aligned with labor, safety, and food-handling standards before the public beta.</p>
+          <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">A multilingual onboarding and audit preparation toolkit in build-mode to keep growers aligned with labor, safety, and food-handling standards before the public beta.</p>
           <ul class="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300">
             <li class="flex gap-2"><span class="text-brand-600">•</span> Implemented mobile-first checklists with offline sync for in-field teams.</li>
             <li class="flex gap-2"><span class="text-brand-600">•</span> Partnering with agronomists to co-create compliance education modules.</li>
@@ -306,7 +473,7 @@
             <h3 class="text-xl font-semibold text-slate-900 dark:text-white">Cali Baking MVP</h3>
             <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-500/20 dark:text-amber-100">In development</span>
           </div>
-          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Experiments in e-commerce, delivery, and subscription models that scale a beloved local bakery beyond brick-and-mortar, still validating before a public launch.</p>
+          <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Experiments in e-commerce, delivery, and subscription models that scale a beloved local bakery beyond brick-and-mortar, still validating before a public launch.</p>
           <ul class="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300">
             <li class="flex gap-2"><span class="text-brand-600">•</span> Built drop schedules and SMS waitlists to drive limited releases.</li>
             <li class="flex gap-2"><span class="text-brand-600">•</span> Testing partnerships with coffee shops and community markets.</li>
@@ -320,28 +487,28 @@
       <div class="space-y-2 text-center">
         <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-600 dark:text-brand-300">Journey</p>
         <h2 class="text-3xl font-bold text-slate-900 dark:text-white">A path shaped by service and execution</h2>
-        <p class="mx-auto max-w-3xl text-base text-slate-600 dark:text-slate-300">From real estate deals to campus ecosystems, I lead with empathy, data, and the conviction that business can uplift communities.</p>
+        <p class="mx-auto max-w-3xl text-base leading-relaxed text-slate-600 dark:text-slate-300">From real estate deals to campus ecosystems, I lead with empathy, data, and the conviction that business can uplift communities.</p>
       </div>
       <ol class="relative space-y-6 border-l border-slate-200 pl-6 dark:border-slate-800">
         <li class="relative">
           <span class="absolute -left-[13px] mt-1 h-3 w-3 rounded-full border border-brand-500 bg-white dark:border-brand-400 dark:bg-slate-950"></span>
           <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-5 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Real estate investing &amp; capital advisory</h3>
-            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Structured creative deals, underwrote acquisitions, and supported operators with go-to-market plans backed by disciplined financial models.</p>
+            <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Structured creative deals, underwrote acquisitions, and supported operators with go-to-market plans backed by disciplined financial models.</p>
           </div>
         </li>
         <li class="relative">
           <span class="absolute -left-[13px] mt-1 h-3 w-3 rounded-full border border-brand-500 bg-white dark:border-brand-400 dark:bg-slate-950"></span>
           <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-5 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Community leadership &amp; service</h3>
-            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Organized mentorship initiatives, resource drives, and practical support for families and students across the Carolinas.</p>
+            <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Organized mentorship initiatives, resource drives, and practical support for families and students across the Carolinas.</p>
           </div>
         </li>
         <li class="relative">
           <span class="absolute -left-[13px] mt-1 h-3 w-3 rounded-full border border-brand-500 bg-white dark:border-brand-400 dark:bg-slate-950"></span>
           <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-5 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Startup operator &amp; advisor</h3>
-            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Guiding teams through MVP launches, analytics instrumentation, and partnership development to reach early proof points.</p>
+            <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Guiding teams through MVP launches, analytics instrumentation, and partnership development to reach early proof points.</p>
           </div>
         </li>
       </ol>
@@ -351,7 +518,7 @@
       <div class="space-y-2 text-center">
         <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-600 dark:text-brand-300">Quick links</p>
         <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Dive deeper</h2>
-        <p class="mx-auto max-w-3xl text-base text-slate-600 dark:text-slate-300">Resources, calendars, and artifacts to learn more about my work. Save what resonates or share it with someone who might benefit.</p>
+        <p class="mx-auto max-w-3xl text-base leading-relaxed text-slate-600 dark:text-slate-300">Resources, calendars, and artifacts to learn more about my work. Save what resonates or share it with someone who might benefit.</p>
       </div>
         <div class="grid gap-5 sm:grid-cols-2">
           <a class="group rounded-3xl border border-slate-200/80 bg-white/70 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60" href="https://calendar.app.google/V6WfbjRRDxbFr6X69">
@@ -359,7 +526,7 @@
               <div class="text-lg font-semibold text-slate-900 dark:text-white">Book time</div>
               <span class="text-xl">🗓️</span>
             </div>
-            <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">15-minute intro chats to explore partnerships or brainstorm ideas.</p>
+            <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">15-minute intro chats to explore partnerships or brainstorm ideas.</p>
             <p class="mt-4 text-sm font-semibold text-brand-600 dark:text-brand-300">Book via Google Calendar →</p>
           </a>
           <a class="group rounded-3xl border border-slate-200/80 bg-white/70 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60" href="mailto:isaacinpursuit@gmail.com">
@@ -367,7 +534,7 @@
               <div class="text-lg font-semibold text-slate-900 dark:text-white">Email</div>
               <span class="text-xl">✉️</span>
             </div>
-            <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Reach me directly with opportunities, questions, or introductions.</p>
+            <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Reach me directly with opportunities, questions, or introductions.</p>
             <p class="mt-4 text-sm font-semibold text-brand-600 dark:text-brand-300">isaacinpursuit@gmail.com</p>
           </a>
           <a class="group rounded-3xl border border-slate-200/80 bg-white/70 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60" href="https://www.linkedin.com/in/isaacinpursuit/">
@@ -375,7 +542,7 @@
               <div class="text-lg font-semibold text-slate-900 dark:text-white">LinkedIn</div>
               <span class="text-xl">🔗</span>
             </div>
-            <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Connect professionally and follow along with weekly build notes.</p>
+            <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Connect professionally and follow along with weekly build notes.</p>
             <p class="mt-4 text-sm font-semibold text-brand-600 dark:text-brand-300">View profile →</p>
           </a>
         </div>
@@ -387,7 +554,7 @@
         <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Guided by principles, focused on impact</h2>
       </div>
       <div class="grid gap-10 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] md:items-start">
-        <div class="space-y-4 text-base leading-relaxed text-slate-600 dark:text-slate-300">
+        <div class="space-y-4 text-base leading-relaxed text-slate-600 dark:text-slate-300 max-w-[65ch]">
           <p>I build at the intersection of real estate, finance, and entrepreneurship. Each chapter of my career has been rooted in a commitment to serve people, steward resources well, and grow communities with integrity.</p>
           <p>Whether structuring a deal, prototyping an MVP, or facilitating a partnership, I obsess over clarity, measurable outcomes, and the human beings affected by the work. Excellence should open doors for others and compound long-term impact.</p>
         </div>
@@ -402,7 +569,7 @@
           </div>
           <div class="rounded-3xl border border-dashed border-brand-500/40 bg-brand-500/5 p-6 text-sm text-slate-600 dark:border-brand-500/30 dark:text-slate-200">
             <p class="font-semibold text-brand-700 dark:text-brand-200">Let’s collaborate</p>
-            <p class="mt-2">If you’re building something that needs a strategic operator with a service-oriented mindset, I’d love to connect.</p>
+            <p class="mt-2 leading-relaxed">If you’re building something that needs a strategic operator with a service-oriented mindset, I’d love to connect.</p>
           </div>
         </div>
       </div>
@@ -412,13 +579,17 @@
       <div class="space-y-2 text-center">
         <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-600 dark:text-brand-300">Contact</p>
         <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Let’s start a conversation</h2>
-        <p class="mx-auto max-w-2xl text-base text-slate-600 dark:text-slate-300">Share what you’re building, where you’re feeling stuck, or how we might co-create impact. I read every message.</p>
+        <p class="mx-auto max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-300">Share what you’re building, where you’re feeling stuck, or how we might co-create impact. I read every message.</p>
       </div>
       <div class="grid gap-10 md:grid-cols-2 md:items-start">
-        <form action="https://formspree.io/f/mkgnjopd" method="POST" data-form class="space-y-5 rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
+        <form action="https://formspree.io/f/mkgnjopd" method="POST" data-form class="space-y-5 rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60" novalidate>
           <div class="space-y-2">
             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200" for="name">Name</label>
             <input required id="name" type="text" name="name" placeholder="Your name" class="w-full rounded-2xl border border-slate-300 bg-white/90 px-4 py-3 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
+          </div>
+          <div class="hidden" aria-hidden="true">
+            <label class="sr-only" for="company">Company</label>
+            <input id="company" type="text" name="company" tabindex="-1" autocomplete="off" data-honeypot />
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200" for="email">Email</label>
@@ -445,22 +616,22 @@
           </div>
           <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Book a meeting</h3>
-            <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Reserve a 15-minute slot on my Google appointment schedule for quick intros or project scoping.</p>
+            <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Reserve a 15-minute slot on my Google appointment schedule for quick intros or project scoping.</p>
             <a href="https://calendar.app.google/V6WfbjRRDxbFr6X69" class="mt-4 inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">Book via Google Calendar</a>
           </div>
           <div class="rounded-3xl border border-dashed border-brand-500/40 bg-brand-500/5 p-6 text-sm text-slate-600 dark:border-brand-500/30 dark:text-slate-200">
             <p class="font-semibold text-brand-700 dark:text-brand-200">Looking for a collaborator?</p>
-            <p class="mt-2">Bring me in to evaluate a deal, run a sprint, or mentor a team. I’ll map the path to traction with you.</p>
+            <p class="mt-2 leading-relaxed">Bring me in to evaluate a deal, run a sprint, or mentor a team. I’ll map the path to traction with you.</p>
           </div>
         </div>
       </div>
       <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
         <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Alternate intake form</h3>
-        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Prefer a structured questionnaire? Submit the Google Form below. It routes to the same inbox and helps me prep before we connect.</p>
+        <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Prefer a structured questionnaire? Submit the Google Form below. It routes to the same inbox and helps me prep before we connect.</p>
         <div class="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-inner dark:border-slate-800 dark:bg-slate-900/40">
           <iframe title="Google intake form" src="https://forms.gle/QEEHH4ic7yET2B9p9" loading="lazy" class="h-[640px] w-full" allowfullscreen></iframe>
         </div>
-        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">If the form doesn’t load, <a class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200" href="https://forms.gle/QEEHH4ic7yET2B9p9" target="_blank" rel="noopener">open it in a new tab</a>.</p>
+        <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">If the form doesn’t load, <a class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200" href="https://forms.gle/QEEHH4ic7yET2B9p9" target="_blank" rel="noopener noreferrer">open it in a new tab</a>.</p>
       </div>
     </section>
   </main>
@@ -472,6 +643,7 @@
     <p class="flex flex-wrap justify-center gap-4">
       <a class="hover:text-brand-600 dark:hover:text-brand-300" href="#hero">Back to top</a>
       <a class="hover:text-brand-600 dark:hover:text-brand-300" href="/links.html">More resources</a>
+      <a class="hover:text-brand-600 dark:hover:text-brand-300" href="/privacy.html">Privacy</a>
       <a class="hover:text-brand-600 dark:hover:text-brand-300" href="mailto:isaacinpursuit@gmail.com">Say hello</a>
     </p>
   </footer>
@@ -501,6 +673,10 @@
 
       const toggleButton = document.querySelector('[data-fractal-toggle]');
       const themeButton = document.getElementById('themeToggle');
+      const collapseButton = wrap.querySelector('[data-fractal-collapse]');
+      const closeButton = wrap.querySelector('[data-fractal-close]');
+      const expandButton = wrap.querySelector('[data-fractal-expand]');
+      const AUTO_COLLAPSE_BREAKPOINT = 640;
 
       const BASE_CENTER = { x: -0.745028, y: 0.18618 };
       const BASE_ZOOM = 1.2;
@@ -514,6 +690,8 @@
       const MANUAL_COOLDOWN = 2.2;
 
       let enabled = false;
+      let collapsed = false;
+      let collapsedPreference = null;
       let reduceMotion = false;
       let cssWidth = 0;
       let cssHeight = 0;
@@ -586,6 +764,34 @@
 
       function clampZoom(value) {
         return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
+      }
+
+      function setCollapsed(next, { fromUser = false } = {}) {
+        const value = Boolean(next);
+        if (fromUser) {
+          collapsedPreference = value;
+        }
+        if (collapseButton) {
+          collapseButton.setAttribute('aria-expanded', (!value).toString());
+        }
+        if (expandButton) {
+          expandButton.setAttribute('aria-expanded', (!value).toString());
+        }
+        if (value === collapsed) {
+          return;
+        }
+        if (!fromUser && !value && collapsedPreference === true) {
+          collapsedPreference = null;
+        }
+        collapsed = value;
+        wrap.dataset.collapsed = value ? 'true' : 'false';
+        if (value) {
+          canvas.setAttribute('aria-hidden', 'true');
+        } else {
+          canvas.removeAttribute('aria-hidden');
+          needsBackdrop = true;
+          needsTileRebuild = true;
+        }
       }
 
       function shuffle(array) {
@@ -762,7 +968,13 @@
       }
 
       function handleResize() {
-        if (!enabled) return;
+        if (collapsedPreference === null) {
+          const shouldCollapse = window.innerWidth < AUTO_COLLAPSE_BREAKPOINT;
+          if (shouldCollapse !== collapsed) {
+            setCollapsed(shouldCollapse);
+          }
+        }
+        if (!enabled || collapsed) return;
         const padding = window.innerWidth < 640 ? 28 : 48;
         const availableWidth = Math.max(320, window.innerWidth - padding);
         const width = Math.min(availableWidth, 1100);
@@ -841,6 +1053,11 @@
       function frame(now) {
         if (!enabled) return;
         const current = now || (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
+        if (collapsed) {
+          lastFrame = current;
+          frameHandle = requestAnimationFrame(frame);
+          return;
+        }
         const deltaSeconds = Math.min(0.1, Math.max(0.001, (current - lastFrame) / 1000));
         lastFrame = current;
 
@@ -914,9 +1131,13 @@
         enabled = true;
         wrap.dataset.enabled = 'true';
         wrap.setAttribute('aria-hidden', 'false');
+        collapsedPreference = null;
+        setCollapsed(window.innerWidth < AUTO_COLLAPSE_BREAKPOINT);
         manualCooldown = 0;
         snapToTarget();
-        handleResize();
+        if (!collapsed) {
+          handleResize();
+        }
         lastFrame = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
         window.addEventListener('resize', handleResize);
         canvas.addEventListener('wheel', handleWheel, { passive: false });
@@ -932,6 +1153,8 @@
         enabled = false;
         wrap.dataset.enabled = 'false';
         wrap.setAttribute('aria-hidden', 'true');
+        setCollapsed(false);
+        collapsedPreference = null;
         window.removeEventListener('resize', handleResize);
         canvas.removeEventListener('wheel', handleWheel);
         window.removeEventListener('keydown', handleKeyDown);
@@ -943,6 +1166,35 @@
         }
         updateToggleButton();
       }
+
+      collapseButton?.addEventListener('click', () => {
+        if (!enabled) return;
+        setCollapsed(true, { fromUser: true });
+      });
+
+      expandButton?.addEventListener('click', () => {
+        if (!enabled) {
+          enable();
+          return;
+        }
+        setCollapsed(false, { fromUser: true });
+        handleResize();
+        if (frameHandle == null) {
+          frameHandle = requestAnimationFrame(frame);
+        }
+      });
+
+      closeButton?.addEventListener('click', () => {
+        if (!enabled) return;
+        disable();
+        if (toggleButton && typeof toggleButton.focus === 'function') {
+          try {
+            toggleButton.focus({ preventScroll: true });
+          } catch (error) {
+            toggleButton.focus();
+          }
+        }
+      });
 
       toggleButton?.addEventListener('click', () => {
         if (enabled) {
@@ -959,6 +1211,7 @@
         }
       });
 
+      setCollapsed(false);
       updateToggleButton();
     })();
 
@@ -992,13 +1245,78 @@
     document.querySelectorAll('form[data-form]').forEach(form => {
       const statusEl = form.querySelector('[data-form-status]');
       const submitButton = form.querySelector('button[type="submit"]');
+      const requiredFields = Array.from(form.querySelectorAll('[required]'));
+      const honeypotField = form.querySelector('[data-honeypot]');
+      const emailField = form.querySelector('input[type="email"]');
+      const messageField = form.querySelector('textarea[name="message"]');
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!statusEl) return;
+
+      requiredFields.forEach(field => {
+        field.addEventListener('input', () => {
+          field.removeAttribute('aria-invalid');
+        });
+      });
 
       form.addEventListener('submit', async event => {
         event.preventDefault();
+        statusEl.classList.remove(...successClasses, ...errorClasses);
         statusEl.classList.remove('hidden');
+
+        requiredFields.forEach(field => {
+          field.removeAttribute('aria-invalid');
+        });
+
+        const errors = [];
+        let firstInvalid = null;
+        const addError = (field, message) => {
+          if (field) {
+            field.setAttribute('aria-invalid', 'true');
+            if (!firstInvalid) {
+              firstInvalid = field;
+            }
+          }
+          if (!errors.includes(message)) {
+            errors.push(message);
+          }
+        };
+
+        if (honeypotField && honeypotField.value.trim().length > 0) {
+          addError(null, 'We could not verify your submission. Please refresh and try again.');
+        }
+
+        requiredFields.forEach(field => {
+          const value = field.value.trim();
+          if (!value) {
+            const label = field.getAttribute('aria-label') || field.previousElementSibling?.textContent || 'This field';
+            addError(field, `${label.trim()} is required.`);
+          }
+        });
+
+        if (emailField) {
+          const value = emailField.value.trim();
+          if (value && !emailPattern.test(value)) {
+            addError(emailField, 'Please enter a valid email address.');
+          }
+        }
+
+        if (messageField) {
+          const value = messageField.value.trim();
+          if (value && value.length < 10) {
+            addError(messageField, 'Please share a few more details in your message.');
+          }
+        }
+
+        if (errors.length) {
+          statusEl.textContent = errors[0];
+          statusEl.classList.add(...errorClasses);
+          if (firstInvalid && typeof firstInvalid.focus === 'function') {
+            firstInvalid.focus();
+          }
+          return;
+        }
+
         statusEl.textContent = 'Sending…';
-        statusEl.classList.remove(...errorClasses);
         statusEl.classList.add(...successClasses);
         if (submitButton) {
           submitButton.disabled = true;

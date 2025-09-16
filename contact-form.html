@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Detailed Intake Form - IsaacInPursuit</title>
   <meta name="description" content="Share context via Google Form before we connect." />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self' https://formspree.io; frame-src https://forms.gle https://docs.google.com; base-uri 'self'; form-action 'self' https://formspree.io;"
+  />
   <meta property="og:title" content="Detailed Intake Form - IsaacInPursuit" />
   <meta property="og:description" content="A Google Form intake for project and collaboration requests." />
   <meta property="og:type" content="website" />
@@ -21,9 +25,16 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    rel="preload"
+    as="style"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    crossorigin
+  >
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Styles -->
+  <link rel="preload" href="/styles/tailwind.css" as="style">
   <link rel="stylesheet" href="/styles/tailwind.css">
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
@@ -49,7 +60,7 @@
           <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-inner dark:border-slate-800 dark:bg-slate-900/40">
             <iframe title="Google intake form" src="https://forms.gle/QEEHH4ic7yET2B9p9" loading="lazy" class="h-[720px] w-full" allowfullscreen></iframe>
           </div>
-          <p class="text-sm text-slate-600 dark:text-slate-300">If the Google Form doesn’t display inside this page, <a class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200" href="https://forms.gle/QEEHH4ic7yET2B9p9" target="_blank" rel="noopener">open it in a new tab</a>.</p>
+          <p class="text-sm text-slate-600 dark:text-slate-300">If the Google Form doesn’t display inside this page, <a class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200" href="https://forms.gle/QEEHH4ic7yET2B9p9" target="_blank" rel="noopener noreferrer">open it in a new tab</a>.</p>
         </div>
       </div>
       <footer class="text-center text-xs text-slate-500 dark:text-slate-400">© <span id="year"></span> Isaac Johnston.</footer>

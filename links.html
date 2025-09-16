@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>IsaacInPursuit - Links</title>
   <meta name="description" content="All of IsaacInPursuit’s links: projects, socials, and contact." />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self' https://formspree.io; frame-src https://forms.gle https://docs.google.com; base-uri 'self'; form-action 'self' https://formspree.io;"
+  />
   <meta property="og:title" content="IsaacInPursuit - Links" />
   <meta property="og:description" content="Projects, socials, and contact on a fast, self‑hosted page." />
   <meta property="og:type" content="website" />
@@ -21,9 +25,16 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    rel="preload"
+    as="style"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    crossorigin
+  >
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Styles -->
+  <link rel="preload" href="/styles/tailwind.css" as="style">
   <link rel="stylesheet" href="/styles/tailwind.css">
   <style>
     .fade-in { animation: fadeIn .5s ease both }
@@ -38,7 +49,7 @@
         <!-- Header -->
         <div class="p-8 pb-4 text-center fade-in">
           <div class="mx-auto h-28 w-28 rounded-full bg-gradient-to-tr from-brand-500/20 to-brand-700/20 border border-slate-200 dark:border-slate-800 grid place-items-center">
-            <img src="/avatar.jpg" alt="Isaac avatar" class="h-24 w-24 rounded-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'text-4xl',textContent:'🧭'}))">
+            <img src="/avatar.jpg" alt="Isaac avatar" class="h-24 w-24 rounded-full object-cover" loading="lazy" decoding="async" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'text-4xl',textContent:'🧭'}))">
           </div>
           <h1 class="mt-4 text-2xl font-extrabold">
             <a href="https://isaacinpursuit.github.io/#hero" class="inline-flex items-center gap-2 text-slate-900 transition hover:text-brand-600 dark:text-slate-100 dark:hover:text-brand-300">
