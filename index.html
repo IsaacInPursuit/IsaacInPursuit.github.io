@@ -123,32 +123,6 @@
       color: #f8fafc;
       box-shadow: 0 16px 38px rgba(8,145,178,.42);
     }
-    button[data-fractal-mode] {
-      position: relative;
-      overflow: hidden;
-    }
-    button[data-fractal-mode]::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      opacity: .55;
-      transition: opacity .3s ease;
-      pointer-events: none;
-    }
-    button[data-fractal-mode][data-mode="aurora"]::after {
-      background: linear-gradient(120deg, rgba(56,189,248,.75), rgba(167,139,250,.65));
-    }
-    button[data-fractal-mode][data-mode="kaleidoscope"]::after {
-      background: linear-gradient(135deg, rgba(251,191,36,.75), rgba(244,114,182,.65));
-    }
-    button[data-fractal-mode][data-mode="golden"]::after {
-      background: linear-gradient(135deg, rgba(34,197,94,.72), rgba(234,179,8,.7));
-    }
-    button[data-fractal-mode]:hover::after,
-    button[data-fractal-mode]:focus-visible::after {
-      opacity: .88;
-    }
   </style>
 </head>
 <body class="relative min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-900 antialiased dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
@@ -171,13 +145,7 @@
         </button>
         <button data-fractal-toggle type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200" title="Launch the interactive fractal demo" data-state="inactive" aria-pressed="false">
           <span aria-hidden="true">✨</span>
-          <span data-fractal-toggle-label>Launch demo</span>
-        </button>
-        <button data-fractal-mode type="button" class="hidden items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200 sm:inline-flex" data-mode="aurora" title="Switch fractal style">
-          Mode: Aurora drift
-        </button>
-        <button data-fractal-shuffle type="button" class="hidden items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200 sm:inline-flex" title="Generate a new fractal seed">
-          Shuffle
+          <span data-fractal-toggle-label>Launch fractal zoom</span>
         </button>
       </div>
     </div>
@@ -532,79 +500,116 @@
       const wrap = document.getElementById('fractalOverlay');
       const canvas = document.getElementById('fractalCanvas');
       if (!wrap || !canvas) return;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { alpha: false });
       if (!ctx) return;
 
       const toggleButton = document.querySelector('[data-fractal-toggle]');
-      const modeButton = document.querySelector('[data-fractal-mode]');
-      const shuffleButton = document.querySelector('[data-fractal-shuffle]');
       const themeButton = document.getElementById('themeToggle');
 
-      const MODE_STORAGE_KEY = 'fractaldemo:mode';
-      const FRACTAL_MODES = ['aurora', 'kaleidoscope', 'golden'];
-      const FRACTAL_MODE_LABELS = {
-        aurora: 'Aurora drift',
-        kaleidoscope: 'Kaleidoscope',
-        golden: 'Golden bloom',
-      };
-      const FRACTAL_MODE_DESCRIPTIONS = {
-        aurora: 'Layered aurora noise fields',
-        kaleidoscope: 'Mirrored sacred-geometry kaleidoscope',
-        golden: 'Golden-ratio phyllotaxis tree',
-      };
+      const BASE_CENTER = { x: -0.745028, y: 0.18618 };
+      const BASE_ZOOM = 1.2;
+      const BASE_SPAN = 3.3;
+      const MIN_ZOOM = 0.45;
+      const MAX_ZOOM = 250000;
+      const ESCAPE_RADIUS = 4;
+      const LOG2 = Math.log(2);
+      const TAU = Math.PI * 2;
+      const AUTOPILOT_RATE = 0.085;
+      const MANUAL_COOLDOWN = 2.2;
 
-      function mulberry32(seed) {
-        return function () {
-          let t = (seed += 0x6d2b79f5);
-          t = Math.imul(t ^ (t >>> 15), t | 1);
-          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      let enabled = false;
+      let reduceMotion = false;
+      let cssWidth = 0;
+      let cssHeight = 0;
+      let dpr = 1;
+      let canvasWidth = 0;
+      let canvasHeight = 0;
+      let tileSize = 64;
+      let tiles = [];
+      let needsTileRebuild = true;
+      let needsBackdrop = true;
+      let palettePhase = 0;
+      let paletteSeed = Math.random() * TAU;
+
+      let targetCenter = { ...BASE_CENTER };
+      let targetZoom = BASE_ZOOM;
+      let displayCenter = { ...BASE_CENTER };
+      let displayZoom = BASE_ZOOM;
+      let queuedCenter = { ...BASE_CENTER };
+      let queuedZoom = BASE_ZOOM;
+      let manualCooldown = 0;
+
+      let lastFrame = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
+      let frameHandle = null;
+
+      const reduceMotionMedia = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+      if (reduceMotionMedia) {
+        reduceMotion = reduceMotionMedia.matches;
+        const handleReduceChange = event => {
+          reduceMotion = event.matches;
         };
+        if (typeof reduceMotionMedia.addEventListener === 'function') {
+          reduceMotionMedia.addEventListener('change', handleReduceChange);
+        } else if (typeof reduceMotionMedia.addListener === 'function') {
+          reduceMotionMedia.addListener(handleReduceChange);
+        }
       }
 
-      function makeNoise(seed) {
-        const rand = mulberry32(seed);
-        const gradients = [];
-        for (let i = 0; i < 256; i++) {
-          gradients.push({ x: rand() * 2 - 1, y: rand() * 2 - 1 });
-        }
-        const perm = new Uint8Array(512);
-        for (let i = 0; i < 512; i++) perm[i] = i & 255;
-        for (let i = 0; i < 256; i++) {
-          const j = (rand() * 256) | 0;
-          const tmp = perm[i];
-          perm[i] = perm[j];
-          perm[j] = tmp;
-          perm[i + 256] = perm[i];
-        }
-        const fade = t => t * t * t * (t * (t * 6 - 15) + 10);
-        const lerp = (a, b, t) => a + t * (b - a);
-
-        function grad(ix, iy, x, y) {
-          const g = gradients[perm[(ix + perm[iy & 255]) & 255]];
-          return g.x * (x - ix) + g.y * (y - iy);
-        }
-
-        return (x, y) => {
-          const x0 = Math.floor(x);
-          const y0 = Math.floor(y);
-          const u = fade(x - x0);
-          const v = fade(y - y0);
-          const n00 = grad(x0, y0, x, y);
-          const n10 = grad(x0 + 1, y0, x, y);
-          const n01 = grad(x0, y0 + 1, x, y);
-          const n11 = grad(x0 + 1, y0 + 1, x, y);
-          return lerp(lerp(n00, n10, u), lerp(n01, n11, u), v);
+      const schemeMedia = window.matchMedia?.('(prefers-color-scheme: dark)');
+      if (schemeMedia) {
+        const handleSchemeChange = () => {
+          if (enabled) {
+            needsBackdrop = true;
+            needsTileRebuild = true;
+          }
         };
+        if (typeof schemeMedia.addEventListener === 'function') {
+          schemeMedia.addEventListener('change', handleSchemeChange);
+        } else if (typeof schemeMedia.addListener === 'function') {
+          schemeMedia.addListener(handleSchemeChange);
+        }
       }
 
-      function randomSeed() {
-        if (globalThis.crypto && typeof globalThis.crypto.getRandomValues === 'function') {
-          const values = new Uint32Array(1);
-          globalThis.crypto.getRandomValues(values);
-          return values[0];
+      let classObserver;
+      if (typeof MutationObserver !== 'undefined') {
+        classObserver = new MutationObserver(() => {
+          if (enabled) {
+            needsBackdrop = true;
+            needsTileRebuild = true;
+          }
+        });
+        classObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        window.addEventListener(
+          'beforeunload',
+          () => {
+            classObserver?.disconnect();
+          },
+          { once: true }
+        );
+      }
+
+      function clampZoom(value) {
+        return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
+      }
+
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
         }
-        return (Math.random() * 0xffffffff) >>> 0;
+      }
+
+      function rebuildTiles() {
+        tiles = [];
+        const columns = Math.ceil(canvasWidth / tileSize);
+        const rows = Math.ceil(canvasHeight / tileSize);
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < columns; x++) {
+            tiles.push({ x: x * tileSize, y: y * tileSize });
+          }
+        }
+        shuffle(tiles);
+        needsTileRebuild = false;
       }
 
       function parseCssColor(value) {
@@ -639,111 +644,125 @@
         return null;
       }
 
-      function persistMode(value) {
-        try {
-          localStorage.setItem(MODE_STORAGE_KEY, value);
-        } catch (error) {
-          // Ignore storage write failures (private mode, etc.)
-        }
-      }
-
-      function loadStoredMode() {
-        try {
-          const stored = localStorage.getItem(MODE_STORAGE_KEY);
-          if (stored && FRACTAL_MODES.includes(stored)) {
-            return stored;
-          }
-        } catch (error) {
-          // Ignore storage read failures
-        }
-        return FRACTAL_MODES[Math.floor(Math.random() * FRACTAL_MODES.length)];
-      }
-
-      let seed = randomSeed();
-      let mode = loadStoredMode();
-      let noise = makeNoise(seed);
-      let enabled = false;
-      let dpr = 1;
-      let pendingFrame = false;
-      let latestScrollY = window.scrollY;
-      let lastScrollUpdate = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
-      let scrollVelocity = 0;
-      let reduceMotion = false;
-
-      const reduceMotionMedia = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-      if (reduceMotionMedia) {
-        reduceMotion = reduceMotionMedia.matches;
-        const handleReduceChange = event => {
-          reduceMotion = event.matches;
-          if (reduceMotion) {
-            wrap.style.transform = '';
-          } else if (enabled) {
-            handleScroll();
-          }
-          scheduleRender();
-        };
-        if (typeof reduceMotionMedia.addEventListener === 'function') {
-          reduceMotionMedia.addEventListener('change', handleReduceChange);
-        } else if (typeof reduceMotionMedia.addListener === 'function') {
-          reduceMotionMedia.addListener(handleReduceChange);
-        }
-      }
-
-      const schemeMedia = window.matchMedia?.('(prefers-color-scheme: dark)');
-      if (schemeMedia) {
-        const handleSchemeChange = () => scheduleRender();
-        if (typeof schemeMedia.addEventListener === 'function') {
-          schemeMedia.addEventListener('change', handleSchemeChange);
-        } else if (typeof schemeMedia.addListener === 'function') {
-          schemeMedia.addListener(handleSchemeChange);
-        }
-      }
-
-      let classObserver;
-      if (typeof MutationObserver !== 'undefined') {
-        classObserver = new MutationObserver(() => scheduleRender());
-        classObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-        window.addEventListener(
-          'beforeunload',
-          () => {
-            classObserver?.disconnect();
-          },
-          { once: true }
+      function drawBackdrop() {
+        const styles = getComputedStyle(document.documentElement);
+        const bg = styles.getPropertyValue('--fract-bg').trim() || '#020617';
+        const fgColor = parseCssColor(styles.getPropertyValue('--fract-fg') || '#e0f2fe') || { r: 224, g: 242, b: 254 };
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        const glow = ctx.createRadialGradient(
+          canvasWidth * 0.48,
+          canvasHeight * 0.52,
+          Math.max(canvasWidth, canvasHeight) * 0.05,
+          canvasWidth * 0.5,
+          canvasHeight * 0.48,
+          Math.max(canvasWidth, canvasHeight) * 0.65
         );
+        glow.addColorStop(0, `rgba(${fgColor.r}, ${fgColor.g}, ${fgColor.b}, ${reduceMotion ? 0.08 : 0.18})`);
+        glow.addColorStop(0.6, 'rgba(15,23,42,0.18)');
+        glow.addColorStop(1, 'rgba(2,6,23,0.92)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        needsBackdrop = false;
       }
 
-      function setSeed(value) {
-        seed = value >>> 0;
-        noise = makeNoise(seed);
+      function samplePalette(t, phase, boost) {
+        const wave = phase + t * TAU;
+        const wave2 = wave + 2.09439510239;
+        const wave3 = wave + 4.18879020479;
+        const base = Math.pow(t, 0.32);
+        const accent = Math.pow(t, 0.65);
+        const r = Math.round(255 * Math.min(1, 0.17 + boost * (0.55 * base + 0.45 * (0.5 + 0.5 * Math.sin(wave)))));
+        const g = Math.round(255 * Math.min(1, 0.18 + boost * (0.58 * base + 0.42 * (0.5 + 0.5 * Math.sin(wave2)))));
+        const b = Math.round(255 * Math.min(1, 0.22 + boost * (0.62 * accent + 0.38 * (0.5 + 0.5 * Math.sin(wave3)))));
+        return [r, g, b];
       }
 
-      function updateButtons() {
-        if (toggleButton) {
-          toggleButton.setAttribute('data-state', enabled ? 'active' : 'inactive');
-          toggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
-          toggleButton.setAttribute('aria-label', enabled ? 'Hide fractal demo' : 'Launch fractal demo');
-          toggleButton.setAttribute('title', enabled ? 'Hide the interactive fractal demo' : 'Launch the interactive fractal demo');
-          const labelEl = toggleButton.querySelector('[data-fractal-toggle-label]');
-          if (labelEl) {
-            labelEl.textContent = enabled ? 'Hide demo' : 'Launch demo';
+      function renderTiles(batchCount) {
+        if (!tiles.length) return;
+        const spanX = BASE_SPAN / displayZoom;
+        const spanY = spanX * (cssHeight / cssWidth);
+        const startX = displayCenter.x - spanX / 2;
+        const startY = displayCenter.y - spanY / 2;
+        const maxIter = Math.max(80, Math.floor(120 + Math.log(displayZoom + 1) * 42));
+        const drift = palettePhase + paletteSeed;
+        const brightnessBoost = Math.min(1.45, 1 + Math.log(displayZoom + 1) * 0.08);
+
+        for (let batch = 0; batch < batchCount && tiles.length; batch++) {
+          const tile = tiles.pop();
+          const tileWidth = Math.min(tileSize, canvasWidth - tile.x);
+          const tileHeight = Math.min(tileSize, canvasHeight - tile.y);
+          const imageData = ctx.createImageData(tileWidth, tileHeight);
+          const data = imageData.data;
+          let offset = 0;
+
+          for (let ty = 0; ty < tileHeight; ty++) {
+            const pixelY = tile.y + ty;
+            const cy = startY + (pixelY / canvasHeight) * spanY;
+
+            for (let tx = 0; tx < tileWidth; tx++) {
+              const pixelX = tile.x + tx;
+              const cx = startX + (pixelX / canvasWidth) * spanX;
+
+              let zx = 0;
+              let zy = 0;
+              let iter = 0;
+              let zx2 = 0;
+              let zy2 = 0;
+
+              while (zx2 + zy2 <= ESCAPE_RADIUS && iter < maxIter) {
+                zy = 2 * zx * zy + cy;
+                zx = zx2 - zy2 + cx;
+                zx2 = zx * zx;
+                zy2 = zy * zy;
+                iter++;
+              }
+
+              let r, g, b;
+              if (iter >= maxIter) {
+                const radial = Math.hypot(cx - displayCenter.x, cy - displayCenter.y) / Math.max(spanX, spanY);
+                const shade = 10 + Math.floor(46 * Math.pow(1 - Math.min(1, radial * 1.8), 1.5));
+                r = g = b = Math.max(8, Math.min(150, shade));
+              } else {
+                const mag = zx2 + zy2;
+                let smooth = iter;
+                if (mag > 1) {
+                  smooth = iter + 1 - Math.log(Math.log(mag)) / LOG2;
+                }
+                const t = Math.max(0, Math.min(1, smooth / maxIter));
+                [r, g, b] = samplePalette(t, drift, brightnessBoost);
+              }
+
+              data[offset++] = r;
+              data[offset++] = g;
+              data[offset++] = b;
+              data[offset++] = 255;
+            }
           }
+
+          ctx.putImageData(imageData, tile.x, tile.y);
         }
-        if (modeButton) {
-          modeButton.dataset.mode = mode;
-          modeButton.textContent = `Mode: ${FRACTAL_MODE_LABELS[mode]}`;
-          modeButton.setAttribute('title', `Switch fractal style – ${FRACTAL_MODE_DESCRIPTIONS[mode]}`);
-          modeButton.setAttribute('aria-label', `Fractal mode: ${FRACTAL_MODE_LABELS[mode]}`);
-        }
-        wrap.setAttribute('data-mode', mode);
       }
 
-      function scheduleRender() {
-        if (!enabled || pendingFrame) return;
-        pendingFrame = true;
-        requestAnimationFrame(() => {
-          pendingFrame = false;
-          render();
-        });
+      function updateToggleButton() {
+        if (!toggleButton) return;
+        toggleButton.setAttribute('data-state', enabled ? 'active' : 'inactive');
+        toggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        toggleButton.setAttribute(
+          'aria-label',
+          enabled ? 'Hide fractal zoom demo' : 'Launch fractal zoom demo'
+        );
+        toggleButton.setAttribute(
+          'title',
+          enabled
+            ? 'Hide the fractal zoom lab'
+            : 'Launch the fractal zoom lab (scroll to zoom out, press space to shift colors)'
+        );
+        const labelEl = toggleButton.querySelector('[data-fractal-toggle-label]');
+        if (labelEl) {
+          labelEl.textContent = enabled ? 'Hide fractal zoom' : 'Launch fractal zoom';
+        }
       }
 
       function handleResize() {
@@ -753,34 +772,144 @@
         const width = Math.min(availableWidth, 1100);
         const height = Math.max(320, Math.min(640, width * 0.62, window.innerHeight * 0.65));
         dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-        canvas.width = Math.floor(width * dpr);
-        canvas.height = Math.floor(height * dpr);
+        canvasWidth = Math.floor(width * dpr);
+        canvasHeight = Math.floor(height * dpr);
+        cssWidth = width;
+        cssHeight = height;
+        tileSize = Math.max(48, Math.floor(56 * dpr));
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
         canvas.style.width = `${width}px`;
         canvas.style.height = `${height}px`;
-        scheduleRender();
+        ctx.imageSmoothingEnabled = false;
+        needsTileRebuild = true;
+        needsBackdrop = true;
       }
 
-      function handleScroll() {
-        if (!enabled) return;
-        const previousScroll = latestScrollY;
-        latestScrollY = window.scrollY;
-        const now = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
-        const deltaTime = Math.max(16, now - lastScrollUpdate);
-        const deltaY = latestScrollY - previousScroll;
-        lastScrollUpdate = now;
-        if (!reduceMotion) {
-          const instantaneous = (deltaY / deltaTime) * 16;
-          scrollVelocity = scrollVelocity * 0.75 + instantaneous * 0.25;
-        } else {
-          scrollVelocity = 0;
-        }
-        wrap.style.transform = '';
-        scheduleRender();
+      function zoomAt(clientX, clientY, factor) {
+        const rect = canvas.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+        const spanX = BASE_SPAN / targetZoom;
+        const spanY = spanX * (cssHeight / cssWidth);
+        const normX = cssWidth ? x / cssWidth : 0.5;
+        const normY = cssHeight ? y / cssHeight : 0.5;
+        const focusX = targetCenter.x + (normX - 0.5) * spanX;
+        const focusY = targetCenter.y + (normY - 0.5) * spanY;
+
+        targetZoom = clampZoom(targetZoom * factor);
+        const nextSpanX = BASE_SPAN / targetZoom;
+        const nextSpanY = nextSpanX * (cssHeight / cssWidth);
+        targetCenter = {
+          x: focusX - (normX - 0.5) * nextSpanX,
+          y: focusY - (normY - 0.5) * nextSpanY
+        };
+        snapToTarget();
+      }
+
+      function snapToTarget() {
+        displayCenter = { ...targetCenter };
+        displayZoom = targetZoom;
+        queuedCenter = { ...displayCenter };
+        queuedZoom = displayZoom;
+        needsTileRebuild = true;
+        needsBackdrop = true;
+      }
+
+      function cyclePalette() {
+        paletteSeed = Math.random() * TAU;
+        palettePhase = 0;
+        needsBackdrop = true;
+        needsTileRebuild = true;
+      }
+
+      function handleWheel(event) {
+        event.preventDefault();
+        manualCooldown = MANUAL_COOLDOWN;
+        const delta = event.deltaY;
+        const factor = Math.pow(1.18, -delta / 120);
+        zoomAt(event.clientX, event.clientY, factor);
       }
 
       function handleKeyDown(event) {
         if (event.key === 'Escape') {
           disable();
+        } else if (event.code === 'Space') {
+          if (!enabled) return;
+          event.preventDefault();
+          manualCooldown = MANUAL_COOLDOWN;
+          cyclePalette();
+        }
+      }
+
+      function frame(now) {
+        if (!enabled) return;
+        const current = now || (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
+        const deltaSeconds = Math.min(0.1, Math.max(0.001, (current - lastFrame) / 1000));
+        lastFrame = current;
+
+        manualCooldown = Math.max(0, manualCooldown - deltaSeconds);
+        if (manualCooldown <= 0) {
+          const rate = reduceMotion ? 0.02 : AUTOPILOT_RATE;
+          targetZoom = clampZoom(targetZoom * Math.exp(rate * deltaSeconds));
+          const drift = current * 0.00005;
+          targetCenter = {
+            x: BASE_CENTER.x + Math.sin(drift) * 0.00055,
+            y: BASE_CENTER.y + Math.cos(drift * 0.8) * 0.00045
+          };
+        }
+
+        const smoothing = 1 - Math.pow(2, -deltaSeconds * 5);
+        displayCenter.x += (targetCenter.x - displayCenter.x) * smoothing;
+        displayCenter.y += (targetCenter.y - displayCenter.y) * smoothing;
+        displayZoom += (targetZoom - displayZoom) * smoothing;
+
+        const centerDelta = Math.max(
+          Math.abs(displayCenter.x - queuedCenter.x),
+          Math.abs(displayCenter.y - queuedCenter.y)
+        );
+        const zoomDelta = Math.abs(displayZoom - queuedZoom) / Math.max(1, displayZoom);
+
+        if (centerDelta > 1e-6 || zoomDelta > 0.002 || needsTileRebuild) {
+          queuedCenter = { ...displayCenter };
+          queuedZoom = displayZoom;
+          rebuildTiles();
+          needsBackdrop = true;
+        }
+
+        if (needsBackdrop) {
+          drawBackdrop();
+        }
+
+        if (tiles.length) {
+          const batch = Math.max(2, Math.floor((canvasWidth * canvasHeight) / 180000));
+          renderTiles(batch);
+        }
+
+        palettePhase = (palettePhase + deltaSeconds * (0.6 + 0.4 * Math.sin(current * 0.00018 + displayZoom * 0.00004))) % TAU;
+        frameHandle = requestAnimationFrame(frame);
+      }
+
+      function handleVisibilityChange() {
+        if (document.visibilityState === 'visible' && enabled) {
+          needsBackdrop = true;
+          needsTileRebuild = true;
+          lastFrame = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
+          if (frameHandle == null) {
+            frameHandle = requestAnimationFrame(frame);
+          }
+        }
+      }
+
+      function handlePageShow(event) {
+        if (event.persisted && enabled) {
+          handleResize();
+          needsBackdrop = true;
+          needsTileRebuild = true;
+          lastFrame = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
+          if (frameHandle == null) {
+            frameHandle = requestAnimationFrame(frame);
+          }
         }
       }
 
@@ -789,14 +918,17 @@
         enabled = true;
         wrap.dataset.enabled = 'true';
         wrap.setAttribute('aria-hidden', 'false');
-        setSeed(seed);
+        manualCooldown = 0;
+        snapToTarget();
         handleResize();
-        handleScroll();
+        lastFrame = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
         window.addEventListener('resize', handleResize);
-        window.addEventListener('scroll', handleScroll, { passive: true });
+        canvas.addEventListener('wheel', handleWheel, { passive: false });
         window.addEventListener('keydown', handleKeyDown);
-        scheduleRender();
-        updateButtons();
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('pageshow', handlePageShow);
+        frameHandle = requestAnimationFrame(frame);
+        updateToggleButton();
       }
 
       function disable() {
@@ -804,215 +936,16 @@
         enabled = false;
         wrap.dataset.enabled = 'false';
         wrap.setAttribute('aria-hidden', 'true');
-        wrap.style.transform = '';
         window.removeEventListener('resize', handleResize);
-        window.removeEventListener('scroll', handleScroll);
+        canvas.removeEventListener('wheel', handleWheel);
         window.removeEventListener('keydown', handleKeyDown);
-        updateButtons();
-      }
-
-      function render() {
-        if (!enabled) return;
-        const width = canvas.width;
-        const height = canvas.height;
-        if (!width || !height) return;
-        ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.clearRect(0, 0, width, height);
-        ctx.restore();
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-        const viewWidth = width / dpr;
-        const viewHeight = height / dpr;
-        const styles = getComputedStyle(document.documentElement);
-        const bg = styles.getPropertyValue('--fract-bg').trim() || '#0f172a';
-        const fgRaw = styles.getPropertyValue('--fract-fg').trim() || '#f8fafc';
-        const fgColor = parseCssColor(fgRaw) || { r: 248, g: 250, b: 252 };
-
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, viewWidth, viewHeight);
-
-        const scrollShiftRaw = latestScrollY / Math.max(1, window.innerHeight || 1);
-        const scrollShift = ((scrollShiftRaw % 1) + 1) % 1;
-        const velocityInfluence = Math.max(-1.25, Math.min(1.25, scrollVelocity * 1.2));
-
-        switch (mode) {
-          case 'kaleidoscope':
-            renderKaleidoscope(viewWidth, viewHeight, fgColor, scrollShift, velocityInfluence);
-            break;
-          case 'golden':
-            renderGolden(viewWidth, viewHeight, fgColor, scrollShift, velocityInfluence);
-            break;
-          default:
-            renderAurora(viewWidth, viewHeight, fgColor, scrollShift, velocityInfluence);
-            break;
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('pageshow', handlePageShow);
+        if (frameHandle != null) {
+          cancelAnimationFrame(frameHandle);
+          frameHandle = null;
         }
-
-        ctx.globalAlpha = 1;
-        const vignette = ctx.createRadialGradient(
-          viewWidth / 2,
-          viewHeight / 2,
-          12,
-          viewWidth / 2,
-          viewHeight / 2,
-          Math.max(viewWidth, viewHeight) / 1.15
-        );
-        vignette.addColorStop(0, 'rgba(0,0,0,0)');
-        vignette.addColorStop(1, 'rgba(2,6,23,0.22)');
-        ctx.fillStyle = vignette;
-        ctx.fillRect(0, 0, viewWidth, viewHeight);
-      }
-
-      function renderAurora(viewWidth, viewHeight, fgColor, scrollShift, velocityInfluence) {
-        const step = Math.max(3.5, (4 * Math.max(1, Math.round(dpr))) / dpr);
-        ctx.save();
-        for (let y = 0; y < viewHeight; y += step) {
-          for (let x = 0; x < viewWidth; x += step) {
-            const sampleX = x * dpr * 0.85;
-            const sampleY = y * dpr * 0.85;
-            const n = noise(sampleX + seed * 0.00032, sampleY + seed * 0.00058);
-            const t = (n + 1) / 2;
-            const hue = (scrollShift * 360 + x * 0.22 + y * (0.12 + velocityInfluence * 0.35)) % 360;
-            const lightness = 44 + t * 42 + Math.abs(velocityInfluence) * 12;
-            const alpha = 0.28 + t * 0.55 + Math.abs(velocityInfluence) * 0.18;
-            ctx.fillStyle = `hsla(${(hue + 360) % 360}, 82%, ${Math.min(82, Math.max(36, lightness))}%, ${alpha})`;
-            ctx.fillRect(x, y, step, step);
-          }
-        }
-        ctx.globalCompositeOperation = 'lighter';
-        ctx.fillStyle = `rgba(${fgColor.r}, ${fgColor.g}, ${fgColor.b}, 0.12)`;
-        ctx.fillRect(0, 0, viewWidth, viewHeight);
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.restore();
-      }
-
-      function renderKaleidoscope(viewWidth, viewHeight, fgColor, scrollShift, velocityInfluence) {
-        const step = Math.max(2.5, (3.6 * Math.max(1, Math.round(dpr))) / dpr);
-        const centerX = viewWidth / 2;
-        const centerY = viewHeight / 2;
-        const segmentAngle = (Math.PI * 2) / 6;
-        const paletteShift = ((seed % 720) / 720) * 360 + scrollShift * 220 + velocityInfluence * 160;
-
-        ctx.save();
-        for (let y = 0; y < viewHeight; y += step) {
-          for (let x = 0; x < viewWidth; x += step) {
-            const dx = x - centerX;
-            const dy = y - centerY;
-            const radius = Math.hypot(dx, dy);
-            let angle = Math.atan2(dy, dx);
-            if (Number.isNaN(angle)) angle = 0;
-            angle = angle % segmentAngle;
-            if (angle < 0) angle += segmentAngle;
-            if (angle > segmentAngle / 2) angle = segmentAngle - angle;
-
-            const mirrorX = Math.cos(angle) * radius;
-            const mirrorY = Math.sin(angle) * radius;
-
-            const swirl = noise(mirrorX * 0.05 + seed * 0.00018, mirrorY * 0.05 + seed * 0.00018 + velocityInfluence * 0.45);
-            const t = (swirl + 1) / 2;
-            const hue = (paletteShift + (angle / segmentAngle) * 360 + radius * 0.22) % 360;
-            const lightness = 42 + 30 * Math.sin(radius * 0.045 + t * Math.PI + velocityInfluence * 1.5);
-            const alpha = 0.23 + 0.45 * Math.pow(t, 1.15) + Math.abs(velocityInfluence) * 0.18;
-            ctx.fillStyle = `hsla(${(hue + 360) % 360}, 78%, ${Math.max(32, Math.min(72, lightness))}%, ${alpha})`;
-            ctx.fillRect(x, y, step, step);
-          }
-        }
-        ctx.globalAlpha = 0.55;
-        ctx.strokeStyle = `rgba(${fgColor.r}, ${fgColor.g}, ${fgColor.b}, 0.75)`;
-        ctx.lineWidth = Math.max(1, viewWidth * 0.0014);
-        ctx.beginPath();
-        const reach = Math.max(viewWidth, viewHeight);
-        for (let i = 0; i < 6; i++) {
-          const theta = (i / 6) * Math.PI * 2;
-          ctx.moveTo(centerX, centerY);
-          ctx.lineTo(centerX + Math.cos(theta) * reach, centerY + Math.sin(theta) * reach);
-        }
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-        ctx.restore();
-      }
-
-      function renderGolden(viewWidth, viewHeight, fgColor, scrollShift, velocityInfluence) {
-        ctx.save();
-        const centerX = viewWidth / 2;
-        const centerY = viewHeight / 2;
-        const phi = (1 + Math.sqrt(5)) / 2;
-        const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-        const rotation = ((seed % 360) * Math.PI) / 180;
-        const offset = ((seed >>> 5) % 97) / 97;
-        const maxRadius = Math.min(viewWidth, viewHeight) * 0.48;
-        const pointCount = 460;
-        const baseHue = (seed % 360 + scrollShift * 260 + velocityInfluence * 120) % 360;
-
-        const glow = ctx.createRadialGradient(
-          centerX,
-          centerY,
-          Math.min(viewWidth, viewHeight) * 0.1,
-          centerX,
-          centerY,
-          Math.max(viewWidth, viewHeight)
-        );
-        glow.addColorStop(0, `rgba(${fgColor.r}, ${fgColor.g}, ${fgColor.b}, 0.22)`);
-        glow.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = glow;
-        ctx.fillRect(0, 0, viewWidth, viewHeight);
-
-        for (let i = 0; i < pointCount; i++) {
-          const angle = rotation + i * goldenAngle;
-          const radius = Math.sqrt((i + offset) / pointCount) * maxRadius;
-          const px = centerX + Math.cos(angle) * radius;
-          const py = centerY + Math.sin(angle) * radius;
-          const falloff = 1 - radius / maxRadius;
-          const alpha = 0.18 + 0.55 * Math.max(0, falloff);
-          const hue = (baseHue + i * (0.72 + velocityInfluence * 0.22) + scrollShift * 200) % 360;
-          const lightness = 48 + falloff * 44 + Math.abs(velocityInfluence) * 14;
-          const size = 0.9 + falloff * (3.6 + Math.abs(velocityInfluence) * 1.8);
-          ctx.beginPath();
-          ctx.fillStyle = `hsla(${(hue + 360) % 360}, 86%, ${Math.max(38, Math.min(78, lightness))}%, ${alpha})`;
-          ctx.arc(px, py, size, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        const trunkWidth = Math.max(1.4, viewWidth * 0.0026);
-        const sway = 0.28 + 0.14 * Math.sin(seed * 0.0003 + scrollShift * Math.PI * 2 + velocityInfluence * Math.PI);
-        const depthLimit = 9;
-        const baseLength = Math.min(viewWidth, viewHeight) / 3.2;
-
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = `rgba(${fgColor.r}, ${fgColor.g}, ${fgColor.b}, 0.55)`;
-        ctx.lineWidth = trunkWidth * 1.08;
-
-        function branch(x, y, length, angle, depth) {
-          if (depth > depthLimit || length < 4) return;
-          const tipX = x + length * Math.cos(angle);
-          const tipY = y - length * Math.sin(angle);
-
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          ctx.lineTo(tipX, tipY);
-          ctx.stroke();
-
-          const nextLength = length / phi;
-          const accentHue = (baseHue + depth * (22 + velocityInfluence * 8) + scrollShift * 200) % 360;
-          ctx.save();
-          ctx.strokeStyle = `hsla(${accentHue}, 88%, 70%, ${0.28 + Math.max(0, 0.18 * (1 - depth / depthLimit))})`;
-          ctx.lineWidth = Math.max(0.8, trunkWidth * Math.pow(0.78, depth + 1));
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          ctx.lineTo(tipX, tipY);
-          ctx.stroke();
-          ctx.restore();
-
-          branch(tipX, tipY, nextLength, angle + sway, depth + 1);
-          branch(tipX, tipY, nextLength, angle - sway, depth + 1);
-          if (depth % 2 === 0) {
-            branch(tipX, tipY, nextLength / phi, angle + sway * 0.35, depth + 2);
-          }
-        }
-
-        branch(centerX, viewHeight * 0.92, baseLength, Math.PI / 2, 0);
-        ctx.restore();
+        updateToggleButton();
       }
 
       toggleButton?.addEventListener('click', () => {
@@ -1023,50 +956,14 @@
         }
       });
 
-      modeButton?.addEventListener('click', () => {
-        const index = FRACTAL_MODES.indexOf(mode);
-        const next = FRACTAL_MODES[(index + 1) % FRACTAL_MODES.length];
-        mode = next;
-        persistMode(next);
-        updateButtons();
-        if (!enabled) {
-          enable();
-        } else {
-          scheduleRender();
-        }
-      });
-
-      shuffleButton?.addEventListener('click', () => {
-        setSeed(randomSeed());
-        if (!enabled) {
-          enable();
-        } else {
-          scheduleRender();
-        }
-      });
-
-      shuffleButton?.setAttribute('aria-label', 'Shuffle fractal seed');
-
       themeButton?.addEventListener('click', () => {
         if (enabled) {
-          requestAnimationFrame(() => scheduleRender());
+          needsBackdrop = true;
+          needsTileRebuild = true;
         }
       });
 
-      document.addEventListener('visibilitychange', () => {
-        if (enabled && document.visibilityState === 'visible') {
-          scheduleRender();
-        }
-      });
-
-      window.addEventListener('pageshow', event => {
-        if (event.persisted && enabled) {
-          handleResize();
-          scheduleRender();
-        }
-      });
-
-      updateButtons();
+      updateToggleButton();
     })();
 
     // Header surface effect
