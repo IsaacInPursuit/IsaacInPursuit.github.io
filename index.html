@@ -23,15 +23,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Tailwind (CDN) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = { darkMode: 'class', theme: { extend: {
-      fontFamily: { sans: ['Inter','system-ui','sans-serif'] },
-      colors: { brand: { 500:'#06b6d4',600:'#0891b2',700:'#0e7490' } },
-      boxShadow: { soft: '0 12px 32px rgba(2,6,23,.18)' }
-    }}}
-  </script>
+  <!-- Styles -->
+  <link rel="stylesheet" href="/styles/tailwind.css">
   <style>
     .fade-in { animation: fadeIn .6s ease both }
     @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
