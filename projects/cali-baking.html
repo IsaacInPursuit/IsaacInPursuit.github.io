@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cali Baking MVP - Project Snapshot</title>
   <meta name="description" content="Project snapshot for the Cali Baking MVP experiments Isaac is running around drops and delivery." />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self' https://formspree.io; frame-src https://forms.gle https://docs.google.com; base-uri 'self'; form-action 'self' https://formspree.io;"
+  />
   <meta property="og:title" content="Cali Baking MVP - Project Snapshot" />
   <meta property="og:description" content="E-commerce and local delivery tests extending a beloved bakery beyond its storefront." />
   <meta property="og:type" content="website" />
@@ -20,8 +24,15 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    rel="preload"
+    as="style"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    crossorigin
+  >
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+  <link rel="preload" href="/styles/tailwind.css" as="style">
   <link rel="stylesheet" href="/styles/tailwind.css">
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">

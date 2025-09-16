@@ -5,6 +5,10 @@
   <title>Infinite Fractal Drift • IsaacInPursuit</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Explore an infinite Mandelbrot fractal lab with smooth zooming, autopilot drift, and curated highlights." />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-src https://forms.gle https://docs.google.com; base-uri 'self'; form-action 'self';"
+  />
   <meta property="og:title" content="Infinite Fractal Drift • IsaacInPursuit" />
   <meta property="og:description" content="An infinite Mandelbrot explorer with autopilot drift, curated highlights, and responsive controls." />
   <meta property="og:type" content="website" />
@@ -18,6 +22,12 @@
   <meta name="author" content="Isaac Johnston" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="preload"
+    as="style"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    crossorigin
+  />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -45,6 +55,7 @@
       display: block;
       background: #020617;
       touch-action: none;
+      outline: none;
     }
 
     #hud {
@@ -216,7 +227,7 @@
   </style>
 </head>
 <body>
-  <canvas id="fractal" aria-hidden="true"></canvas>
+  <canvas id="fractal" role="img" aria-label="Interactive Mandelbrot fractal explorer"></canvas>
   <div id="hud">
     <a id="back-link" href="/index.html">← Back to home</a>
     <div>
