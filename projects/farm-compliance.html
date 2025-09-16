@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Farm Compliance MVP - Project Snapshot</title>
+  <meta name="description" content="Project snapshot covering the Farm Compliance MVP toolkit Isaac is building with growers." />
+  <meta property="og:title" content="Farm Compliance MVP - Project Snapshot" />
+  <meta property="og:description" content="Mobile-first onboarding and audit tooling helping farms stay inspection ready." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://isaacinpursuit.github.io/projects/farm-compliance.html" />
+  <meta property="og:image" content="/og.png" />
+  <meta property="og:site_name" content="IsaacInPursuit" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Farm Compliance MVP - Project Snapshot" />
+  <meta name="twitter:description" content="Mobile-first onboarding and audit tooling helping farms stay inspection ready." />
+  <meta name="twitter:image" content="https://isaacinpursuit.github.io/og.png" />
+  <meta name="author" content="Isaac Johnston" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8C%8A%3C/text%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      fontFamily: { sans: ['Inter','system-ui','sans-serif'] },
+      colors: { brand: { 500:'#06b6d4',600:'#0891b2',700:'#0e7490' } },
+      boxShadow: { soft: '0 16px 40px rgba(15,23,42,.18)' }
+    }}}
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+  <main class="min-h-screen py-12 px-4">
+    <div class="mx-auto flex w-full max-w-4xl flex-col gap-6">
+      <header class="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-200/80 bg-white/80 px-5 py-4 shadow-soft backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/60">
+        <div class="flex flex-wrap items-center gap-3 text-sm font-semibold">
+          <a href="/index.html" class="inline-flex items-center gap-2 text-brand-600 transition hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200">← Back to home</a>
+          <a href="/index.html#projects" class="inline-flex items-center gap-2 text-slate-600 transition hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-200">Projects</a>
+          <a href="/links.html" class="inline-flex items-center gap-2 text-slate-600 transition hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-200">Links hub</a>
+        </div>
+        <button id="themeToggle" class="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200">🌗 Theme</button>
+      </header>
+
+      <article class="space-y-6 rounded-3xl border border-slate-200/80 bg-white/85 p-6 shadow-soft backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/60 md:p-10">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-600 dark:text-brand-300">Project snapshot</p>
+            <h1 class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">Farm Compliance MVP</h1>
+          </div>
+          <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-500/20 dark:text-amber-100">In development</span>
+        </div>
+        <p class="text-base text-slate-600 dark:text-slate-300">Partnering with southeastern growers to build a multilingual onboarding and audit preparation toolkit. The MVP focuses on replacing spreadsheets and paper checklists with structured workflows that keep every farm inspection ready.</p>
+
+        <div class="grid gap-6 md:grid-cols-2">
+          <section class="space-y-4">
+            <h2 class="text-sm font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">Highlights</h2>
+            <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+              <li class="flex gap-3"><span class="mt-1 text-brand-600">▹</span><span>Rolled out offline-ready safety and labor checklists for field supervisors.</span></li>
+              <li class="flex gap-3"><span class="mt-1 text-brand-600">▹</span><span>Co-designed onboarding flows with bilingual crews to surface documentation gaps early.</span></li>
+              <li class="flex gap-3"><span class="mt-1 text-brand-600">▹</span><span>Integrated compliance reminders with SMS nudges that align with weekly harvest cadences.</span></li>
+            </ul>
+          </section>
+          <section class="space-y-4">
+            <h2 class="text-sm font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">In flight</h2>
+            <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+              <li class="flex gap-3"><span class="mt-1 text-brand-600">▹</span><span>Finishing Spanish and Haitian Creole translations for the audit prep library.</span></li>
+              <li class="flex gap-3"><span class="mt-1 text-brand-600">▹</span><span>Adding reviewer dashboards that summarize issues by crew, field, and regulation.</span></li>
+              <li class="flex gap-3"><span class="mt-1 text-brand-600">▹</span><span>Piloting integrations with state Department of Labor portals for digital submissions.</span></li>
+            </ul>
+          </section>
+        </div>
+
+        <section class="rounded-3xl border border-dashed border-brand-500/40 bg-brand-500/5 p-6 text-sm text-slate-600 dark:border-brand-500/30 dark:text-slate-200">
+          <h2 class="text-base font-semibold text-brand-700 dark:text-brand-200">How you can help</h2>
+          <p class="mt-2">We’re looking for additional pilot farms, agriculture attorneys, and quality assurance leads willing to provide feedback on multilingual onboarding. Introduce yourself and we’ll schedule a working session.</p>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <a href="/index.html#contact" class="inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-2 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">Start a conversation</a>
+            <a href="mailto:isaacinpursuit@gmail.com" class="inline-flex items-center gap-2 rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200">Email Isaac</a>
+          </div>
+        </section>
+      </article>
+
+      <footer class="text-center text-xs text-slate-500 dark:text-slate-400">© <span id="year"></span> Isaac Johnston.</footer>
+    </div>
+  </main>
+
+  <script>
+    const applyTheme = () => {
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+    applyTheme();
+    document.getElementById('themeToggle')?.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.theme = isDark ? 'dark' : 'light';
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
