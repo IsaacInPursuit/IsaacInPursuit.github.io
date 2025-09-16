@@ -57,9 +57,19 @@
       transition: opacity .3s ease, transform .45s ease;
       will-change: transform, opacity;
     }
-    #fractalOverlay[data-enabled="true"] { opacity: 1 }
-    #fractalOverlay canvas {
+    #fractalOverlay[data-enabled="true"] {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #fractalOverlay .fractal-overlay-shell {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.75rem;
       width: min(100%, 1100px);
+    }
+    #fractalOverlay canvas {
+      width: 100%;
       height: auto;
       border-radius: 1.75rem;
       box-shadow: 0 32px 80px rgba(15,23,42,.22);
@@ -68,6 +78,38 @@
     .dark #fractalOverlay canvas {
       box-shadow: 0 32px 120px rgba(15,23,42,.55);
       background: radial-gradient(circle at top, rgba(148,163,184,.08), rgba(2,6,23,.6));
+    }
+    #fractalOverlay .fractal-overlay-link {
+      align-self: flex-end;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.9rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(148,163,184,.45);
+      background: rgba(15,23,42,.72);
+      color: var(--fract-fg);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 20px 48px rgba(2,6,23,.38);
+      transition: background .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+    }
+    .dark #fractalOverlay .fractal-overlay-link {
+      border-color: rgba(148,163,184,.35);
+      background: rgba(15,23,42,.78);
+      box-shadow: 0 28px 64px rgba(2,6,23,.55);
+      color: var(--fract-fg);
+    }
+    #fractalOverlay .fractal-overlay-link:hover,
+    #fractalOverlay .fractal-overlay-link:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(8,145,178,.55);
+      background: rgba(8,145,178,.2);
+      box-shadow: 0 30px 80px rgba(8,145,178,.35);
+      outline: none;
     }
     button[data-fractal-toggle][data-state="active"] {
       background-color: rgb(14 116 144);
@@ -148,7 +190,13 @@
   </header>
 
   <div id="fractalOverlay" data-enabled="false" aria-hidden="true">
-    <canvas id="fractalCanvas" aria-hidden="true"></canvas>
+    <div class="fractal-overlay-shell">
+      <canvas id="fractalCanvas" aria-hidden="true"></canvas>
+      <a class="fractal-overlay-link" href="/math-gallery.html">
+        Explore the full math demo gallery
+        <span aria-hidden="true">→</span>
+      </a>
+    </div>
   </div>
 
   <main class="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-24 px-4 pb-24">
