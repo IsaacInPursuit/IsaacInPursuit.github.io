@@ -10,6 +10,12 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://isaacinpursuit.github.io/" />
   <meta property="og:image" content="/og.png" />
+  <meta property="og:site_name" content="IsaacInPursuit" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="IsaacInPursuit — Links" />
+  <meta name="twitter:description" content="Projects, socials, contact, resume — on a fast, self-hosted hub." />
+  <meta name="twitter:image" content="https://isaacinpursuit.github.io/og.png" />
+  <meta name="author" content="Isaac Johnston" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8C%8A%3C/text%3E%3C/svg%3E" />
 
   <!-- Fonts -->
@@ -69,6 +75,15 @@
               <div class="text-xl">↗</div>
             </div>
           </a>
+          <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="https://calendar.app.google/V6WfbjRRDxbFr6X69">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-semibold">Book a 15-min intro</div>
+                <div class="text-sm opacity-70">Reserve via Google Calendar</div>
+              </div>
+              <div class="text-xl">🗓️</div>
+            </div>
+          </a>
             <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="/fractal.html">
               <div class="flex items-center justify-between">
                 <div>
@@ -120,18 +135,28 @@
               <div class="text-xl">✉️</div>
             </div>
           </a>
+          <a class="block w-full rounded-2xl border border-slate-300 dark:border-slate-700 px-5 py-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition" href="/contact-form.html">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-semibold">Detailed Intake Form</div>
+                <div class="text-sm opacity-70">Google Form questionnaire</div>
+              </div>
+              <div class="text-xl">📝</div>
+            </div>
+          </a>
         </div>
 
         <!-- Contact form -->
         <div id="contact" class="px-8 pb-8">
-          <form action="https://formspree.io/f/your-id" method="POST" class="space-y-3">
+          <form action="https://formspree.io/f/mkgnjopd" method="POST" data-form class="space-y-3">
             <div class="text-sm font-semibold">Quick message</div>
             <input required type="text" name="name" placeholder="Your name" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent" />
             <input required type="email" name="email" placeholder="you@example.com" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent" />
             <textarea required name="message" rows="4" placeholder="What's up?" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"></textarea>
-            <button class="w-full px-4 py-3 rounded-xl bg-brand-600 text-white hover:bg-brand-700">Send</button>
+            <button type="submit" class="w-full px-4 py-3 rounded-xl bg-brand-600 text-white shadow-soft transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">Send</button>
+            <p data-form-status role="status" aria-live="polite" class="hidden text-sm font-medium text-brand-600 dark:text-brand-300"></p>
           </form>
-          <p class="mt-2 text-xs text-slate-500">Replace Formspree endpoint with your own or wire to a serverless function later.</p>
+          <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Powered by Formspree. Need more space? Try the <a class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200" href="/contact-form.html">detailed intake form</a>.</p>
         </div>
       </div>
 
@@ -155,6 +180,56 @@
       const isDark = document.documentElement.classList.toggle('dark');
       localStorage.theme = isDark ? 'dark' : 'light';
     })
+
+    // Form submission handling
+    const successClasses = ['text-brand-600', 'dark:text-brand-300'];
+    const errorClasses = ['text-red-600', 'dark:text-red-400'];
+    document.querySelectorAll('form[data-form]').forEach(form => {
+      const statusEl = form.querySelector('[data-form-status]');
+      const submitButton = form.querySelector('button[type="submit"]');
+      if (!statusEl) return;
+
+      form.addEventListener('submit', async event => {
+        event.preventDefault();
+        statusEl.classList.remove('hidden');
+        statusEl.textContent = 'Sending…';
+        statusEl.classList.remove(...errorClasses);
+        statusEl.classList.add(...successClasses);
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.setAttribute('aria-disabled', 'true');
+        }
+
+        try {
+          const formData = new FormData(form);
+          const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { Accept: 'application/json' }
+          });
+
+          if (response.ok) {
+            statusEl.textContent = 'Thanks! Your message is on its way.';
+            form.reset();
+          } else {
+            const data = await response.json().catch(() => null);
+            const message = data?.errors?.[0]?.message || data?.message || 'Something went wrong. Email isaacinpursuit@gmail.com.';
+            statusEl.textContent = message;
+            statusEl.classList.remove(...successClasses);
+            statusEl.classList.add(...errorClasses);
+          }
+        } catch (error) {
+          statusEl.textContent = 'Something went wrong. Email isaacinpursuit@gmail.com.';
+          statusEl.classList.remove(...successClasses);
+          statusEl.classList.add(...errorClasses);
+        } finally {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.removeAttribute('aria-disabled');
+          }
+        }
+      });
+    });
 
     // Year stamp
     document.getElementById('year').textContent = new Date().getFullYear();
