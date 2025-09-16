@@ -1,109 +1,700 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Golden Fractal - IsaacInPursuit</title>
-  <meta name="description" content="Scroll to grow a golden-ratio fractal demo built by Isaac Johnston." />
-  <meta property="og:title" content="Golden Fractal - IsaacInPursuit" />
-  <meta property="og:description" content="Interactive fractal visualization that expands as you scroll." />
+  <meta charset="utf-8" />
+  <title>Infinite Fractal Drift • IsaacInPursuit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Explore an infinite Mandelbrot fractal lab with smooth zooming, autopilot drift, and curated highlights." />
+  <meta property="og:title" content="Infinite Fractal Drift • IsaacInPursuit" />
+  <meta property="og:description" content="An infinite Mandelbrot explorer with autopilot drift, curated highlights, and responsive controls." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://isaacinpursuit.github.io/fractal.html" />
   <meta property="og:image" content="/og.png" />
   <meta property="og:site_name" content="IsaacInPursuit" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Golden Fractal - IsaacInPursuit" />
-  <meta name="twitter:description" content="Interactive fractal visualization that expands as you scroll." />
+  <meta name="twitter:title" content="Infinite Fractal Drift • IsaacInPursuit" />
+  <meta name="twitter:description" content="A living Mandelbrot sketch that glides through infinite detail with curated jump points." />
   <meta name="twitter:image" content="https://isaacinpursuit.github.io/og.png" />
   <meta name="author" content="Isaac Johnston" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    body {margin:0; overflow-x:hidden; background:#020617; color:#fff; font-family:'Inter',system-ui,sans-serif;}
-    canvas {position:fixed; top:0; left:0; display:block; z-index:-1;}
-    header.nav {position:fixed; top:1rem; left:50%; transform:translateX(-50%); display:flex; gap:1rem; padding:0.55rem 1.2rem; border-radius:9999px; border:1px solid rgba(148,163,184,.4); background:rgba(15,23,42,.75); backdrop-filter:blur(14px); z-index:20; font-size:0.9rem;}
-    header.nav a {color:#e2e8f0; text-decoration:none; font-weight:600; letter-spacing:.01em;}
-    header.nav a:hover, header.nav a:focus-visible {color:#38bdf8;}
-    .spin {position:fixed; top:1rem; right:1rem; width:50px; height:50px; border-radius:50%; border:4px solid #fff; border-top-color:transparent; animation:spin 2s linear infinite;}
-    @keyframes spin {to{transform:rotate(360deg);}}
-    section {height:100vh; display:flex; align-items:center; justify-content:center; padding:1.5rem; text-align:center;}
-    .hero {flex-direction:column; gap:1rem; background:#0b1120;}
-    .hero h1 {font-size:2.6rem; margin:0; letter-spacing:.01em;}
-    .hero p {max-width:680px; margin:0 auto; font-size:1.05rem; line-height:1.6; color:#cbd5f5;}
-    .hidden {opacity:0; transform:translateY(20px); transition:opacity .6s, transform .6s; font-size:1.6rem;}
-    .show {opacity:1; transform:none;}
-    footer {position:fixed; bottom:1.25rem; left:50%; transform:translateX(-50%); padding:0.45rem 1.1rem; border-radius:9999px; border:1px solid rgba(148,163,184,.35); background:rgba(15,23,42,.7); backdrop-filter:blur(14px); font-size:0.85rem; z-index:20;}
-    footer a {color:#38bdf8; font-weight:600; text-decoration:none;}
-    footer a:hover, footer a:focus-visible {text-decoration:underline;}
+    :root {
+      color-scheme: dark;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: #e2e8f0;
+      background: radial-gradient(circle at 20% 20%, rgba(45, 212, 191, 0.12), rgba(15, 23, 42, 0.95));
+    }
+
+    canvas#fractal {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      background: #020617;
+      touch-action: none;
+    }
+
+    #hud {
+      position: fixed;
+      top: clamp(1.5rem, 4vw, 2.75rem);
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(720px, calc(100vw - 2.5rem));
+      display: grid;
+      gap: 0.85rem;
+      padding: 1.1rem 1.4rem 1.3rem;
+      border-radius: 1.5rem;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(10, 15, 30, 0.74);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 42px 120px rgba(2, 6, 23, 0.6);
+      z-index: 5;
+    }
+
+    #hud a#back-link {
+      justify-self: flex-start;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      color: rgba(226, 232, 240, 0.75);
+      border-bottom: 1px solid transparent;
+      padding-bottom: 0.2rem;
+      transition: color 0.2s ease, border-color 0.2s ease;
+    }
+
+    #hud a#back-link:hover,
+    #hud a#back-link:focus-visible {
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.45);
+      outline: none;
+    }
+
+    #hud h1 {
+      margin: 0;
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      letter-spacing: -0.01em;
+    }
+
+    #hud p {
+      margin: 0;
+      color: rgba(226, 232, 240, 0.8);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .controls button {
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(15, 23, 42, 0.65);
+      color: #f8fafc;
+      font: inherit;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      padding: 0.55rem 1.1rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .controls button:hover,
+    .controls button:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(56, 189, 248, 0.65);
+      background: rgba(56, 189, 248, 0.18);
+      outline: none;
+    }
+
+    .controls button[data-state="off"] {
+      border-color: rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.78);
+    }
+
+    #status {
+      position: fixed;
+      left: 1.75rem;
+      bottom: 1.75rem;
+      padding: 0.6rem 1.05rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(10, 16, 32, 0.75);
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
+      box-shadow: 0 24px 70px rgba(2, 6, 23, 0.55);
+      z-index: 5;
+      backdrop-filter: blur(14px);
+    }
+
+    #footer {
+      position: fixed;
+      right: 1.75rem;
+      bottom: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.45rem;
+      padding: 0.75rem 1.1rem;
+      border-radius: 1.1rem;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(10, 15, 30, 0.74);
+      box-shadow: 0 28px 90px rgba(2, 6, 23, 0.55);
+      z-index: 5;
+      backdrop-filter: blur(18px);
+      max-width: min(360px, calc(100vw - 3.5rem));
+    }
+
+    #footer span {
+      font-size: 0.85rem;
+      color: rgba(226, 232, 240, 0.78);
+      line-height: 1.5;
+      text-align: right;
+    }
+
+    #footer a {
+      color: #38bdf8;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    #footer a:hover,
+    #footer a:focus-visible {
+      text-decoration: underline;
+      outline: none;
+    }
+
+    @media (max-width: 720px) {
+      #hud {
+        width: min(96vw, 560px);
+        padding: 1rem 1.1rem 1.2rem;
+      }
+
+      .controls {
+        gap: 0.45rem;
+      }
+
+      .controls button {
+        flex: 1 1 46%;
+        justify-content: center;
+      }
+
+      #status,
+      #footer {
+        left: 50%;
+        right: auto;
+        bottom: clamp(1rem, 6vw, 1.5rem);
+        transform: translateX(-50%);
+        align-items: center;
+        text-align: center;
+      }
+
+      #status {
+        margin-bottom: clamp(4.2rem, 12vw, 5.4rem);
+      }
+
+      #footer {
+        gap: 0.35rem;
+      }
+    }
   </style>
 </head>
 <body>
-  <header class="nav">
-    <a href="/index.html">← Back to home</a>
-    <a href="/index.html#projects">Projects</a>
-    <a href="/links.html">Links hub</a>
-  </header>
-  <div class="spin" aria-hidden="true"></div>
   <canvas id="fractal" aria-hidden="true"></canvas>
-  <section class="show hero">
-    <h1>Golden fractal explorer</h1>
-    <p>Scroll to grow the golden-ratio tree. This interactive sketch demonstrates how I prototype data visualizations and interactive art when translating complex systems for operators and stakeholders.</p>
-  </section>
-  <section class="hidden" style="background:#222;">Math: φ = (1+√5)/2 rules the lengths.</section>
-  <section class="hidden" style="background:#333;">History: Egyptians, Greeks and da Vinci sought this harmony.</section>
-  <section class="hidden" style="background:#444;">Forgotten patterns: triadic branches echo in nature.</section>
-  <section class="hidden" style="background:#2d3748;">Ready for more? Head back to the portfolio to explore current work.</section>
-  <footer>
-    <span>Prefer slides? Visit the <a href="/index.html#projects">project snapshots</a>.</span>
-    <span style="margin-left:0.75rem;">Want more math? <a href="/math-gallery.html">Explore the full gallery</a>.</span>
+  <div id="hud">
+    <a id="back-link" href="/index.html">← Back to home</a>
+    <div>
+      <h1>Fractal drift lab</h1>
+      <p>Pan, zoom, or let autopilot wander. Each jump dives into curated Mandelbrot vistas that unfold endlessly.</p>
+    </div>
+    <div class="controls">
+      <button id="toggle-autopilot" data-state="on" type="button">Pause autopilot</button>
+      <button id="jump-highlight" type="button">Jump to a highlight</button>
+      <button id="reset-view" type="button">Reset view</button>
+    </div>
+  </div>
+  <div id="status" role="status" aria-live="polite">Loading fractal…</div>
+  <footer id="footer">
+    <span>Scroll or pinch to zoom. Drag to pan. Press <strong>space</strong> to toggle autopilot.</span>
+    <a href="/math-gallery.html">Prefer a gallery of math demos? Visit the interactive collection →</a>
   </footer>
   <script>
-    const canvas = document.getElementById('fractal');
-    const ctx = canvas.getContext('2d');
-    const spinner = document.querySelector('.spin');
-    const PHI = (1 + Math.sqrt(5)) / 2;
-    const MAX_DEPTH = 9;
-    let currentDepth = 1;
+    (() => {
+      const canvas = document.getElementById('fractal');
+      const ctx = canvas.getContext('2d', { alpha: false });
+      const statusEl = document.getElementById('status');
+      const autopilotBtn = document.getElementById('toggle-autopilot');
+      const jumpBtn = document.getElementById('jump-highlight');
+      const resetBtn = document.getElementById('reset-view');
 
-    function resize() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      draw();
-    }
-    window.addEventListener('resize', resize);
-    resize();
+      const BASE_CENTER = { x: -0.745028, y: 0.18618 };
+      const BASE_ZOOM = 1.1;
+      const BASE_SPAN = 3.3;
+      const MIN_ZOOM = 0.45;
+      const MAX_ZOOM = 250000;
+      const TILE_BASE = 64;
+      const LOG2 = Math.log(2);
+      const ESCAPE_RADIUS = 4;
+      const HIGHLIGHTS = [
+        { label: 'Seahorse Valley', x: -0.743643887037151, y: 0.13182590420533, zoom: 1800 },
+        { label: 'Electric Bloom', x: -0.745113, y: 0.112376, zoom: 5200 },
+        { label: 'Elephant Twins', x: 0.27322626, y: 0.00798497, zoom: 520 },
+        { label: 'Spiral Necklace', x: -0.10109636384562, y: 0.95628651080914, zoom: 1350 },
+        { label: 'Celtic Spirals', x: -0.390541, y: -0.586788, zoom: 3400 },
+        { label: 'Nebula Filaments', x: -1.25066, y: 0.02012, zoom: 640 }
+      ];
 
-    function branch(x, y, length, angle, depth) {
-      if (depth >= currentDepth || length < 2) return;
-      const x2 = x + length * Math.cos(angle);
-      const y2 = y - length * Math.sin(angle);
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-      const newLen = length / PHI;
-      [-Math.PI/6, 0, Math.PI/6].forEach(a => branch(x2, y2, newLen, angle + a, depth + 1));
-    }
+      let cssWidth = 0;
+      let cssHeight = 0;
+      let dpr = 1;
+      let canvasWidth = 0;
+      let canvasHeight = 0;
+      let tileSize = TILE_BASE;
+      let tiles = [];
+      let needsTileRebuild = true;
+      let needsBackdrop = true;
+      let palettePhase = 0;
 
-    function draw() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ctx.strokeStyle = '#0ff';
-      branch(canvas.width/2, canvas.height, canvas.height/3, Math.PI/2, 0);
-      spinner?.remove();
-    }
+      let targetCenter = { ...BASE_CENTER };
+      let targetZoom = BASE_ZOOM;
+      let displayCenter = { ...BASE_CENTER };
+      let displayZoom = BASE_ZOOM;
+      let queuedCenter = { ...BASE_CENTER };
+      let queuedZoom = BASE_ZOOM;
+      let autopilot = true;
+      let activeHighlight = null;
+      let holdTimer = 0;
+      let lastFrame = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
+      let pointerSnapshots = new Map();
+      let lastPinchDistance = null;
+      let isManualSnap = false;
 
-    window.addEventListener('scroll', () => {
-      currentDepth = Math.min(MAX_DEPTH, Math.floor(window.scrollY / 80) + 1);
-      draw();
-    });
+      const reduceMotionMedia = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+      if (reduceMotionMedia?.matches) {
+        autopilot = false;
+      }
 
-    // Scroll reveal
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) entry.target.classList.add('show');
+      function clampZoom(value) {
+        return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
+      }
+
+      function resize() {
+        cssWidth = window.innerWidth || document.documentElement.clientWidth || 800;
+        cssHeight = window.innerHeight || document.documentElement.clientHeight || 600;
+        dpr = Math.min(2, window.devicePixelRatio || 1);
+        canvasWidth = Math.max(200, Math.floor(cssWidth * dpr));
+        canvasHeight = Math.max(200, Math.floor(cssHeight * dpr));
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        canvas.style.width = cssWidth + 'px';
+        canvas.style.height = cssHeight + 'px';
+        tileSize = Math.max(48, Math.floor(TILE_BASE * dpr));
+        needsTileRebuild = true;
+        needsBackdrop = true;
+      }
+
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      function rebuildTiles() {
+        tiles = [];
+        const columns = Math.ceil(canvasWidth / tileSize);
+        const rows = Math.ceil(canvasHeight / tileSize);
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < columns; x++) {
+            tiles.push({ x: x * tileSize, y: y * tileSize });
+          }
+        }
+        shuffle(tiles);
+        needsTileRebuild = false;
+      }
+
+      function drawBackdrop() {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        const glow = ctx.createRadialGradient(
+          canvasWidth * 0.52,
+          canvasHeight * 0.48,
+          canvasWidth * 0.1,
+          canvasWidth * 0.5,
+          canvasHeight * 0.52,
+          Math.max(canvasWidth, canvasHeight) * 0.75
+        );
+        glow.addColorStop(0, 'rgba(56, 189, 248, 0.12)');
+        glow.addColorStop(0.55, 'rgba(15, 23, 42, 0.18)');
+        glow.addColorStop(1, 'rgba(2, 6, 23, 0.92)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        needsBackdrop = false;
+      }
+
+      function screenToComplex(clientX, clientY, center = displayCenter, zoom = displayZoom) {
+        const spanX = BASE_SPAN / zoom;
+        const spanY = spanX * (cssHeight / cssWidth);
+        const normX = cssWidth ? clientX / cssWidth : 0;
+        const normY = cssHeight ? clientY / cssHeight : 0;
+        return {
+          x: center.x + (normX - 0.5) * spanX,
+          y: center.y + (normY - 0.5) * spanY
+        };
+      }
+
+      function updateStatus() {
+        if (!statusEl) return;
+        const zoomText = formatZoom(displayZoom);
+        const modeText = autopilot ? 'Autopilot drifting' : 'Manual control';
+        const highlightText = activeHighlight ? ` • ${activeHighlight.label}` : '';
+        statusEl.textContent = `Zoom ${zoomText} • ${modeText}${highlightText}`;
+      }
+
+      function formatZoom(value) {
+        if (value < 1) return value.toFixed(2) + '×';
+        if (value < 1000) return value.toFixed(1) + '×';
+        if (value < 1e6) return (value / 1000).toFixed(1) + 'k×';
+        return (value / 1e6).toFixed(2) + 'M×';
+      }
+
+      function updateAutopilotButton() {
+        if (!autopilotBtn) return;
+        autopilotBtn.dataset.state = autopilot ? 'on' : 'off';
+        autopilotBtn.textContent = autopilot ? 'Pause autopilot' : 'Resume autopilot';
+      }
+
+      function chooseHighlight(exclude) {
+        const options = HIGHLIGHTS.filter(h => h !== exclude);
+        if (!options.length) return exclude || HIGHLIGHTS[0];
+        return options[Math.floor(Math.random() * options.length)];
+      }
+
+      function jumpToHighlight(highlight, { announce = true } = {}) {
+        if (!highlight) return;
+        targetCenter = { x: highlight.x, y: highlight.y };
+        targetZoom = clampZoom(highlight.zoom);
+        activeHighlight = highlight;
+        if (announce && statusEl) {
+          statusEl.setAttribute('data-highlight', highlight.label);
+        }
+        if (!autopilot) {
+          snapToTarget();
+        }
+        needsTileRebuild = true;
+        needsBackdrop = true;
+      }
+
+      function resetView() {
+        targetCenter = { ...BASE_CENTER };
+        targetZoom = BASE_ZOOM;
+        activeHighlight = null;
+        snapToTarget();
+      }
+
+      function setAutopilot(value) {
+        autopilot = Boolean(value);
+        updateAutopilotButton();
+        if (autopilot && !activeHighlight) {
+          jumpToHighlight(chooseHighlight());
+        }
+      }
+
+      function beginManualInteraction() {
+        if (autopilot) {
+          setAutopilot(false);
+        }
+      }
+
+      function snapToTarget() {
+        displayCenter = { ...targetCenter };
+        displayZoom = targetZoom;
+        queuedCenter = { ...displayCenter };
+        queuedZoom = displayZoom;
+        needsTileRebuild = true;
+        needsBackdrop = true;
+        isManualSnap = true;
+      }
+
+      function panBy(dx, dy) {
+        const spanX = BASE_SPAN / targetZoom;
+        const spanY = spanX * (cssHeight / cssWidth);
+        targetCenter = {
+          x: targetCenter.x - (dx / Math.max(1, cssWidth)) * spanX,
+          y: targetCenter.y + (dy / Math.max(1, cssHeight)) * spanY
+        };
+        snapToTarget();
+      }
+
+      function zoomAt(clientX, clientY, factor) {
+        const focusBefore = screenToComplex(clientX, clientY, targetCenter, targetZoom);
+        targetZoom = clampZoom(targetZoom * factor);
+        const spanX = BASE_SPAN / targetZoom;
+        const spanY = spanX * (cssHeight / cssWidth);
+        const normX = cssWidth ? clientX / cssWidth : 0.5;
+        const normY = cssHeight ? clientY / cssHeight : 0.5;
+        targetCenter = {
+          x: focusBefore.x - (normX - 0.5) * spanX,
+          y: focusBefore.y - (normY - 0.5) * spanY
+        };
+        snapToTarget();
+      }
+
+      function renderTiles(batchCount) {
+        if (!tiles.length) return;
+        const spanX = BASE_SPAN / displayZoom;
+        const spanY = spanX * (canvasHeight / canvasWidth);
+        const startX = displayCenter.x - spanX / 2;
+        const startY = displayCenter.y - spanY / 2;
+        const maxIter = Math.max(80, Math.floor(110 + Math.log(displayZoom + 1) * 38));
+        const drift = palettePhase;
+        const brightnessBoost = Math.min(1.5, 1 + Math.log(displayZoom + 1) * 0.08);
+
+        for (let batch = 0; batch < batchCount && tiles.length; batch++) {
+          const tile = tiles.pop();
+          const tileWidth = Math.min(tileSize, canvasWidth - tile.x);
+          const tileHeight = Math.min(tileSize, canvasHeight - tile.y);
+          const imageData = ctx.createImageData(tileWidth, tileHeight);
+          const data = imageData.data;
+          let offset = 0;
+          for (let ty = 0; ty < tileHeight; ty++) {
+            const pixelY = tile.y + ty;
+            const cy = startY + (pixelY / canvasHeight) * spanY;
+            for (let tx = 0; tx < tileWidth; tx++) {
+              const pixelX = tile.x + tx;
+              const cx = startX + (pixelX / canvasWidth) * spanX;
+
+              let zx = 0;
+              let zy = 0;
+              let iter = 0;
+              let zx2 = 0;
+              let zy2 = 0;
+              while (zx2 + zy2 <= ESCAPE_RADIUS && iter < maxIter) {
+                zy = 2 * zx * zy + cy;
+                zx = zx2 - zy2 + cx;
+                zx2 = zx * zx;
+                zy2 = zy * zy;
+                iter++;
+              }
+
+              let r, g, b;
+              if (iter >= maxIter) {
+                const radial = Math.hypot(cx - displayCenter.x, cy - displayCenter.y) / Math.max(spanX, spanY);
+                const shade = 6 + Math.floor(42 * Math.pow(1 - Math.min(1, radial * 2), 1.5));
+                r = g = b = Math.max(8, Math.min(120, shade));
+              } else {
+                const mag = zx2 + zy2;
+                let smooth = iter;
+                if (mag > 1) {
+                  smooth = iter + 1 - Math.log(Math.log(mag)) / LOG2;
+                }
+                const t = Math.max(0, Math.min(1, smooth / maxIter));
+                [r, g, b] = samplePalette(t, drift, brightnessBoost);
+              }
+
+              data[offset++] = r;
+              data[offset++] = g;
+              data[offset++] = b;
+              data[offset++] = 255;
+            }
+          }
+          ctx.putImageData(imageData, tile.x, tile.y);
+        }
+      }
+
+      function samplePalette(t, phase, boost) {
+        const wave = phase + t * 6.283185307179586;
+        const wave2 = wave + 2.09439510239;
+        const wave3 = wave + 4.18879020479;
+        const base = Math.pow(t, 0.3);
+        const accent = Math.pow(t, 0.65);
+        const r = Math.round(255 * Math.min(1, 0.2 + boost * (0.55 * base + 0.45 * (0.5 + 0.5 * Math.sin(wave)))));
+        const g = Math.round(255 * Math.min(1, 0.18 + boost * (0.58 * base + 0.42 * (0.5 + 0.5 * Math.sin(wave2)))));
+        const b = Math.round(255 * Math.min(1, 0.22 + boost * (0.62 * accent + 0.38 * (0.5 + 0.5 * Math.sin(wave3)))));
+        return [r, g, b];
+      }
+
+      function frame(now) {
+        const currentTime = now || (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
+        const deltaSeconds = Math.min(0.1, Math.max(0.001, (currentTime - lastFrame) / 1000));
+        lastFrame = currentTime;
+
+        if (!isManualSnap) {
+          const smoothing = autopilot ? 1 - Math.pow(2, -deltaSeconds * 2.4) : 1 - Math.pow(2, -deltaSeconds * 6);
+          displayCenter.x += (targetCenter.x - displayCenter.x) * smoothing;
+          displayCenter.y += (targetCenter.y - displayCenter.y) * smoothing;
+          displayZoom += (targetZoom - displayZoom) * smoothing;
+        } else {
+          isManualSnap = false;
+        }
+
+        const centerDelta = Math.max(
+          Math.abs(displayCenter.x - queuedCenter.x),
+          Math.abs(displayCenter.y - queuedCenter.y)
+        );
+        const zoomDelta = Math.abs(displayZoom - queuedZoom) / Math.max(1, displayZoom);
+        if (centerDelta > 1e-6 || zoomDelta > 0.002 || needsTileRebuild) {
+          queuedCenter = { ...displayCenter };
+          queuedZoom = displayZoom;
+          rebuildTiles();
+          needsBackdrop = true;
+        }
+
+        if (needsBackdrop) {
+          drawBackdrop();
+        }
+
+        if (tiles.length) {
+          const batch = Math.max(3, Math.floor((canvasWidth * canvasHeight) / 200000));
+          renderTiles(batch);
+          holdTimer = 0;
+        } else if (autopilot && activeHighlight) {
+          const distance = Math.hypot(targetCenter.x - displayCenter.x, targetCenter.y - displayCenter.y);
+          const zoomDiff = Math.abs(targetZoom - displayZoom) / targetZoom;
+          if (distance < 5e-7 && zoomDiff < 0.006) {
+            holdTimer += deltaSeconds;
+            if (holdTimer > 9) {
+              holdTimer = 0;
+              jumpToHighlight(chooseHighlight(activeHighlight));
+            }
+          }
+        }
+
+        palettePhase = (palettePhase + deltaSeconds * (0.6 + 0.4 * Math.sin(currentTime * 0.00018 + displayZoom * 0.00004))) % (Math.PI * 2);
+        updateStatus();
+        requestAnimationFrame(frame);
+      }
+
+      function handleWheel(event) {
+        event.preventDefault();
+        beginManualInteraction();
+        const delta = event.deltaY;
+        const factor = Math.pow(1.18, -delta / 120);
+        zoomAt(event.clientX, event.clientY, factor);
+      }
+
+      function handlePointerDown(event) {
+        beginManualInteraction();
+        canvas.setPointerCapture(event.pointerId);
+        pointerSnapshots.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        if (pointerSnapshots.size === 1) {
+          lastPinchDistance = null;
+        }
+      }
+
+      function handlePointerMove(event) {
+        const snapshot = pointerSnapshots.get(event.pointerId);
+        if (!snapshot) return;
+        const prevX = snapshot.x;
+        const prevY = snapshot.y;
+        snapshot.x = event.clientX;
+        snapshot.y = event.clientY;
+
+        if (pointerSnapshots.size === 1) {
+          const dx = event.clientX - prevX;
+          const dy = event.clientY - prevY;
+          if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
+            panBy(dx, dy);
+          }
+        } else if (pointerSnapshots.size >= 2) {
+          const pointers = Array.from(pointerSnapshots.values());
+          const [first, second] = pointers;
+          const dx = first.x - second.x;
+          const dy = first.y - second.y;
+          const distance = Math.hypot(dx, dy);
+          const midX = (first.x + second.x) / 2;
+          const midY = (first.y + second.y) / 2;
+          if (lastPinchDistance && distance > 0) {
+            const scale = distance / lastPinchDistance;
+            if (Number.isFinite(scale) && scale > 0) {
+              const factor = Math.pow(scale, 0.85);
+              zoomAt(midX, midY, factor);
+            }
+          }
+          lastPinchDistance = distance;
+        }
+      }
+
+      function handlePointerUp(event) {
+        pointerSnapshots.delete(event.pointerId);
+        if (pointerSnapshots.size < 2) {
+          lastPinchDistance = null;
+        }
+      }
+
+      function handleKey(event) {
+        if (event.code === 'Space') {
+          event.preventDefault();
+          setAutopilot(!autopilot);
+        } else if (event.key === 'r' || event.key === 'R') {
+          resetView();
+        } else if (event.key === 'j' || event.key === 'J') {
+          beginManualInteraction();
+          jumpToHighlight(chooseHighlight(activeHighlight), { announce: true });
+        }
+      }
+
+      resize();
+      window.addEventListener('resize', resize);
+      canvas.addEventListener('wheel', handleWheel, { passive: false });
+      canvas.addEventListener('pointerdown', handlePointerDown);
+      canvas.addEventListener('pointermove', handlePointerMove);
+      canvas.addEventListener('pointerup', handlePointerUp);
+      canvas.addEventListener('pointercancel', handlePointerUp);
+      document.addEventListener('keydown', handleKey);
+
+      autopilotBtn?.addEventListener('click', () => {
+        setAutopilot(!autopilot);
       });
-    });
-    document.querySelectorAll('section.hidden').forEach(sec => obs.observe(sec));
+
+      jumpBtn?.addEventListener('click', () => {
+        beginManualInteraction();
+        jumpToHighlight(chooseHighlight(activeHighlight), { announce: true });
+      });
+
+      resetBtn?.addEventListener('click', () => {
+        beginManualInteraction();
+        resetView();
+      });
+
+      if (reduceMotionMedia) {
+        const handleReduceMotionChange = event => {
+          if (event.matches) {
+            setAutopilot(false);
+          }
+        };
+        if (typeof reduceMotionMedia.addEventListener === 'function') {
+          reduceMotionMedia.addEventListener('change', handleReduceMotionChange);
+        } else if (typeof reduceMotionMedia.addListener === 'function') {
+          reduceMotionMedia.addListener(handleReduceMotionChange);
+        }
+      }
+
+      updateAutopilotButton();
+      if (autopilot) {
+        jumpToHighlight(chooseHighlight(), { announce: false });
+      } else {
+        resetView();
+      }
+      requestAnimationFrame(frame);
+    })();
   </script>
 </body>
 </html>

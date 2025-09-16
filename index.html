@@ -666,6 +666,8 @@
       let dpr = 1;
       let pendingFrame = false;
       let latestScrollY = window.scrollY;
+      let lastScrollUpdate = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
+      let scrollVelocity = 0;
       let reduceMotion = false;
 
       const reduceMotionMedia = window.matchMedia?.('(prefers-reduced-motion: reduce)');
@@ -760,12 +762,19 @@
 
       function handleScroll() {
         if (!enabled) return;
+        const previousScroll = latestScrollY;
         latestScrollY = window.scrollY;
-        if (reduceMotion) {
-          wrap.style.transform = '';
+        const now = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
+        const deltaTime = Math.max(16, now - lastScrollUpdate);
+        const deltaY = latestScrollY - previousScroll;
+        lastScrollUpdate = now;
+        if (!reduceMotion) {
+          const instantaneous = (deltaY / deltaTime) * 16;
+          scrollVelocity = scrollVelocity * 0.75 + instantaneous * 0.25;
         } else {
-          wrap.style.transform = `translateY(${latestScrollY * 0.12}px)`;
+          scrollVelocity = 0;
         }
+        wrap.style.transform = '';
         scheduleRender();
       }
 
@@ -824,17 +833,19 @@
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, viewWidth, viewHeight);
 
-        const scrollShift = ((latestScrollY % 2400) + 2400) / 2400;
+        const scrollShiftRaw = latestScrollY / Math.max(1, window.innerHeight || 1);
+        const scrollShift = ((scrollShiftRaw % 1) + 1) % 1;
+        const velocityInfluence = Math.max(-1.25, Math.min(1.25, scrollVelocity * 1.2));
 
         switch (mode) {
           case 'kaleidoscope':
-            renderKaleidoscope(viewWidth, viewHeight, fgColor, scrollShift);
+            renderKaleidoscope(viewWidth, viewHeight, fgColor, scrollShift, velocityInfluence);
             break;
           case 'golden':
-            renderGolden(viewWidth, viewHeight, fgColor, scrollShift);
+            renderGolden(viewWidth, viewHeight, fgColor, scrollShift, velocityInfluence);
             break;
           default:
-            renderAurora(viewWidth, viewHeight, fgColor, scrollShift);
+            renderAurora(viewWidth, viewHeight, fgColor, scrollShift, velocityInfluence);
             break;
         }
 
@@ -853,7 +864,7 @@
         ctx.fillRect(0, 0, viewWidth, viewHeight);
       }
 
-      function renderAurora(viewWidth, viewHeight, fgColor, scrollShift) {
+      function renderAurora(viewWidth, viewHeight, fgColor, scrollShift, velocityInfluence) {
         const step = Math.max(3.5, (4 * Math.max(1, Math.round(dpr))) / dpr);
         ctx.save();
         for (let y = 0; y < viewHeight; y += step) {
@@ -862,9 +873,9 @@
             const sampleY = y * dpr * 0.85;
             const n = noise(sampleX + seed * 0.00032, sampleY + seed * 0.00058);
             const t = (n + 1) / 2;
-            const hue = (scrollShift * 360 + x * 0.18 + y * 0.12) % 360;
-            const lightness = 45 + t * 40;
-            const alpha = 0.32 + t * 0.55;
+            const hue = (scrollShift * 360 + x * 0.22 + y * (0.12 + velocityInfluence * 0.35)) % 360;
+            const lightness = 44 + t * 42 + Math.abs(velocityInfluence) * 12;
+            const alpha = 0.28 + t * 0.55 + Math.abs(velocityInfluence) * 0.18;
             ctx.fillStyle = `hsla(${(hue + 360) % 360}, 82%, ${Math.min(82, Math.max(36, lightness))}%, ${alpha})`;
             ctx.fillRect(x, y, step, step);
           }
@@ -876,12 +887,12 @@
         ctx.restore();
       }
 
-      function renderKaleidoscope(viewWidth, viewHeight, fgColor, scrollShift) {
+      function renderKaleidoscope(viewWidth, viewHeight, fgColor, scrollShift, velocityInfluence) {
         const step = Math.max(2.5, (3.6 * Math.max(1, Math.round(dpr))) / dpr);
         const centerX = viewWidth / 2;
         const centerY = viewHeight / 2;
         const segmentAngle = (Math.PI * 2) / 6;
-        const paletteShift = (seed % 720) / 720 * 360 + scrollShift * 180;
+        const paletteShift = ((seed % 720) / 720) * 360 + scrollShift * 220 + velocityInfluence * 160;
 
         ctx.save();
         for (let y = 0; y < viewHeight; y += step) {
@@ -898,11 +909,11 @@
             const mirrorX = Math.cos(angle) * radius;
             const mirrorY = Math.sin(angle) * radius;
 
-            const swirl = noise(mirrorX * 0.05 + seed * 0.00018, mirrorY * 0.05 + seed * 0.00018);
+            const swirl = noise(mirrorX * 0.05 + seed * 0.00018, mirrorY * 0.05 + seed * 0.00018 + velocityInfluence * 0.45);
             const t = (swirl + 1) / 2;
             const hue = (paletteShift + (angle / segmentAngle) * 360 + radius * 0.22) % 360;
-            const lightness = 40 + 32 * Math.sin(radius * 0.045 + t * Math.PI);
-            const alpha = 0.25 + 0.45 * Math.pow(t, 1.15);
+            const lightness = 42 + 30 * Math.sin(radius * 0.045 + t * Math.PI + velocityInfluence * 1.5);
+            const alpha = 0.23 + 0.45 * Math.pow(t, 1.15) + Math.abs(velocityInfluence) * 0.18;
             ctx.fillStyle = `hsla(${(hue + 360) % 360}, 78%, ${Math.max(32, Math.min(72, lightness))}%, ${alpha})`;
             ctx.fillRect(x, y, step, step);
           }
@@ -922,7 +933,7 @@
         ctx.restore();
       }
 
-      function renderGolden(viewWidth, viewHeight, fgColor, scrollShift) {
+      function renderGolden(viewWidth, viewHeight, fgColor, scrollShift, velocityInfluence) {
         ctx.save();
         const centerX = viewWidth / 2;
         const centerY = viewHeight / 2;
@@ -932,7 +943,7 @@
         const offset = ((seed >>> 5) % 97) / 97;
         const maxRadius = Math.min(viewWidth, viewHeight) * 0.48;
         const pointCount = 460;
-        const baseHue = (seed % 360 + scrollShift * 240) % 360;
+        const baseHue = (seed % 360 + scrollShift * 260 + velocityInfluence * 120) % 360;
 
         const glow = ctx.createRadialGradient(
           centerX,
@@ -954,9 +965,9 @@
           const py = centerY + Math.sin(angle) * radius;
           const falloff = 1 - radius / maxRadius;
           const alpha = 0.18 + 0.55 * Math.max(0, falloff);
-          const hue = (baseHue + i * 0.72 + scrollShift * 180) % 360;
-          const lightness = 48 + falloff * 44;
-          const size = 0.9 + falloff * 3.6;
+          const hue = (baseHue + i * (0.72 + velocityInfluence * 0.22) + scrollShift * 200) % 360;
+          const lightness = 48 + falloff * 44 + Math.abs(velocityInfluence) * 14;
+          const size = 0.9 + falloff * (3.6 + Math.abs(velocityInfluence) * 1.8);
           ctx.beginPath();
           ctx.fillStyle = `hsla(${(hue + 360) % 360}, 86%, ${Math.max(38, Math.min(78, lightness))}%, ${alpha})`;
           ctx.arc(px, py, size, 0, Math.PI * 2);
@@ -964,7 +975,7 @@
         }
 
         const trunkWidth = Math.max(1.4, viewWidth * 0.0026);
-        const sway = 0.28 + 0.14 * Math.sin(seed * 0.0003 + scrollShift * Math.PI * 2);
+        const sway = 0.28 + 0.14 * Math.sin(seed * 0.0003 + scrollShift * Math.PI * 2 + velocityInfluence * Math.PI);
         const depthLimit = 9;
         const baseLength = Math.min(viewWidth, viewHeight) / 3.2;
 
@@ -983,7 +994,7 @@
           ctx.stroke();
 
           const nextLength = length / phi;
-          const accentHue = (baseHue + depth * 22 + scrollShift * 180) % 360;
+          const accentHue = (baseHue + depth * (22 + velocityInfluence * 8) + scrollShift * 200) % 360;
           ctx.save();
           ctx.strokeStyle = `hsla(${accentHue}, 88%, 70%, ${0.28 + Math.max(0, 0.18 * (1 - depth / depthLimit))})`;
           ctx.lineWidth = Math.max(0.8, trunkWidth * Math.pow(0.78, depth + 1));
