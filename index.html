@@ -28,7 +28,20 @@
   <script>
     tailwind.config = { darkMode: 'class', theme: { extend: {
       fontFamily: { sans: ['Inter','system-ui','sans-serif'] },
-      colors: { brand: { 500:'#06b6d4',600:'#0891b2',700:'#0e7490' } },
+      colors: {
+        brand: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0478a5',
+          700: '#03506d',
+          800: '#02344c',
+          900: '#012638'
+        }
+      },
       boxShadow: { soft: '0 12px 32px rgba(2,6,23,.18)' }
     }}}
   </script>
@@ -321,23 +334,23 @@
         <p class="mx-auto max-w-2xl text-base text-slate-600 dark:text-slate-300">Share what you’re building, where you’re feeling stuck, or how we might co-create impact. I read every message.</p>
       </div>
       <div class="grid gap-10 md:grid-cols-2 md:items-start">
-        <form action="https://formspree.io/f/mkgnjopd" method="POST" data-form class="space-y-5 rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
+        <form action="https://formspree.io/f/mkgnjopd" method="POST" data-form aria-describedby="contact-status" class="space-y-5 rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
           <div class="space-y-2">
             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200" for="name">Name</label>
-            <input required id="name" type="text" name="name" placeholder="Your name" class="w-full rounded-2xl border border-slate-300 bg-white/90 px-4 py-3 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
+            <input required id="name" type="text" name="name" placeholder="Your name" autocomplete="name" class="w-full rounded-2xl border border-slate-300 bg-white/90 px-4 py-3 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200" for="email">Email</label>
-            <input required id="email" type="email" name="email" placeholder="you@example.com" class="w-full rounded-2xl border border-slate-300 bg-white/90 px-4 py-3 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
+            <input required id="email" type="email" name="email" placeholder="you@example.com" autocomplete="email" inputmode="email" spellcheck="false" class="w-full rounded-2xl border border-slate-300 bg-white/90 px-4 py-3 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200" for="message">Message</label>
-            <textarea required id="message" name="message" rows="5" placeholder="What are you exploring?" class="w-full rounded-2xl border border-slate-300 bg-white/90 px-4 py-3 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100"></textarea>
+            <textarea required id="message" name="message" rows="5" placeholder="What are you exploring?" autocomplete="off" class="w-full rounded-2xl border border-slate-300 bg-white/90 px-4 py-3 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100"></textarea>
           </div>
           <div class="space-y-3">
-            <button class="w-full rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">Send message</button>
+            <button type="submit" aria-describedby="contact-status" class="w-full rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">Send message</button>
             <p class="text-xs text-slate-500 dark:text-slate-400">Powered by Formspree. Prefer email? <a class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200" href="mailto:isaacinpursuit@gmail.com">isaacinpursuit@gmail.com</a>.</p>
-            <p data-form-status role="status" aria-live="polite" class="hidden text-sm font-medium text-brand-600 dark:text-brand-300"></p>
+            <p id="contact-status" data-form-status role="status" aria-live="polite" class="hidden text-sm font-medium text-brand-700 dark:text-brand-200"></p>
           </div>
         </form>
         <div class="space-y-6">
@@ -411,12 +424,16 @@
     window.addEventListener('scroll', toggleHeaderState, { passive: true });
 
     // Form submission handling
-    const successClasses = ['text-brand-600', 'dark:text-brand-300'];
+    const successClasses = ['text-brand-700', 'dark:text-brand-200'];
     const errorClasses = ['text-red-600', 'dark:text-red-400'];
     document.querySelectorAll('form[data-form]').forEach(form => {
       const statusEl = form.querySelector('[data-form-status]');
       const submitButton = form.querySelector('button[type="submit"]');
       if (!statusEl) return;
+
+      if (typeof window.fetch !== 'function') {
+        return;
+      }
 
       form.addEventListener('submit', async event => {
         event.preventDefault();

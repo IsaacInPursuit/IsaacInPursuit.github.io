@@ -8,7 +8,7 @@
   <meta property="og:title" content="IsaacInPursuit - Links" />
   <meta property="og:description" content="Projects, socials, contact, resume - on a fast, self‑hosted page." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://isaacinpursuit.github.io/" />
+  <meta property="og:url" content="https://isaacinpursuit.github.io/links.html" />
   <meta property="og:image" content="/og.png" />
   <meta property="og:site_name" content="IsaacInPursuit" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -28,7 +28,20 @@
   <script>
     tailwind.config = { darkMode: 'class', theme: { extend: {
       fontFamily: { sans: ['Inter','system-ui','sans-serif'] },
-      colors: { brand: { 500:'#06b6d4',600:'#0891b2',700:'#0e7490' } },
+      colors: {
+        brand: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0478a5',
+          700: '#03506d',
+          800: '#02344c',
+          900: '#012638'
+        }
+      },
       boxShadow: { soft: '0 12px 32px rgba(2,6,23,.18)' }
     }}};
   </script>
@@ -148,21 +161,29 @@
 
         <!-- Contact form -->
         <div id="contact" class="px-8 pb-8">
-          <form action="https://formspree.io/f/mkgnjopd" method="POST" data-form class="space-y-3">
+          <form action="https://formspree.io/f/mkgnjopd" method="POST" data-form aria-describedby="quick-status" class="space-y-3">
             <div class="text-sm font-semibold">Quick message</div>
-            <input required type="text" name="name" placeholder="Your name" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent" />
-            <input required type="email" name="email" placeholder="you@example.com" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent" />
-            <textarea required name="message" rows="4" placeholder="What's up?" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"></textarea>
-            <button type="submit" class="w-full px-4 py-3 rounded-xl bg-brand-600 text-white shadow-soft transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">Send</button>
-            <p data-form-status role="status" aria-live="polite" class="hidden text-sm font-medium text-brand-600 dark:text-brand-300"></p>
+            <div class="space-y-1">
+              <label class="sr-only" for="quick-name">Name</label>
+              <input required id="quick-name" type="text" name="name" placeholder="Your name" autocomplete="name" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent" />
+            </div>
+            <div class="space-y-1">
+              <label class="sr-only" for="quick-email">Email</label>
+              <input required id="quick-email" type="email" name="email" placeholder="you@example.com" autocomplete="email" inputmode="email" spellcheck="false" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent" />
+            </div>
+            <div class="space-y-1">
+              <label class="sr-only" for="quick-message">Message</label>
+              <textarea required id="quick-message" name="message" rows="4" placeholder="What's up?" autocomplete="off" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent"></textarea>
+            </div>
+            <button type="submit" aria-describedby="quick-status" class="w-full px-4 py-3 rounded-xl bg-brand-600 text-white shadow-soft transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">Send</button>
+            <p id="quick-status" data-form-status role="status" aria-live="polite" class="hidden text-sm font-medium text-brand-700 dark:text-brand-200"></p>
           </form>
           <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Powered by Formspree. Need more space? Try the <a class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200" href="/contact-form.html">detailed intake form</a>.</p>
         </div>
       </div>
 
       <!-- Footer -->
-      <div class="text-center mt-4 text-xs text-slate-500">© <span id="year"></span> IsaacInPursuit • Self‑hosted Beacons‑style page
-      </div>
+      <div class="text-center mt-4 text-xs text-slate-500">© <span id="year"></span> IsaacInPursuit • Self-hosted links hub</div>
     </div>
   </main>
 
@@ -182,12 +203,16 @@
     })
 
     // Form submission handling
-    const successClasses = ['text-brand-600', 'dark:text-brand-300'];
+    const successClasses = ['text-brand-700', 'dark:text-brand-200'];
     const errorClasses = ['text-red-600', 'dark:text-red-400'];
     document.querySelectorAll('form[data-form]').forEach(form => {
       const statusEl = form.querySelector('[data-form-status]');
       const submitButton = form.querySelector('button[type="submit"]');
       if (!statusEl) return;
+
+      if (typeof window.fetch !== 'function') {
+        return;
+      }
 
       form.addEventListener('submit', async event => {
         event.preventDefault();
