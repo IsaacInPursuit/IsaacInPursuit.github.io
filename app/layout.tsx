@@ -1,6 +1,6 @@
 import "../styles/globals.css";
 import type { Metadata } from "next";
-import FractalDemo from "../components/FractalDemo";
+import FractalDemo, { FractalToggleButton } from "../components/FractalDemo";
 
 export const metadata: Metadata = {
   title: "Isaac Johnston",
@@ -11,15 +11,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        {/* Fractal buttons on left and canvas layer */}
-        <FractalDemo />
-
-        {/* Theme button on right */}
-        <div className="fixed top-3 right-3 z-[60]">
-          <button id="theme-toggle" className="rounded-md border px-3 py-1 text-sm">
-            Theme
-          </button>
-        </div>
+        {/* Fractal controls and theme toggle */}
+        <FractalDemo>
+          <div className="fixed top-3 right-3 z-[60] flex items-center gap-2">
+            <FractalToggleButton
+              variant="subtle"
+              labelWhenOff="Fractal"
+              labelWhenOn="Hide fractal"
+              title="Toggle fractal demo"
+            />
+            <button id="theme-toggle" className="rounded-md border px-3 py-1 text-sm">
+              Theme
+            </button>
+          </div>
+        </FractalDemo>
 
         {children}
       </body>
