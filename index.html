@@ -1,287 +1,1139 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mathematical Demo Garden</title>
-  <meta name="description" content="A gallery of mathematical and geometric demonstrations rendered in realtime on the web." />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Isaac Johnston</title>
+  <meta name="description" content="Entrepreneur in real estate, finance, and startups." />
+  <meta property="og:title" content="Isaac Johnston" />
+  <meta property="og:description" content="Grounded in service. Focused on growth. Open to learning." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://isaacinpursuit.github.io/" />
+  <meta property="og:image" content="/og.png" />
+  <meta property="og:site_name" content="IsaacInPursuit" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Isaac Johnston" />
+  <meta name="twitter:description" content="Entrepreneur partnering with operators to launch resilient ventures." />
+  <meta name="twitter:image" content="https://isaacinpursuit.github.io/og.png" />
+  <meta name="author" content="Isaac Johnston" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8C%8A%3C/text%3E%3C/svg%3E" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      fontFamily: { sans: ['Inter','system-ui','sans-serif'] },
+      colors: { brand: { 500:'#06b6d4',600:'#0891b2',700:'#0e7490' } },
+      boxShadow: { soft: '0 12px 32px rgba(2,6,23,.18)' }
+    }}}
+  </script>
   <style>
-<<<
+    .fade-in { animation: fadeIn .6s ease both }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+    .floating { animation: float 14s ease-in-out infinite alternate }
+    @keyframes float { from{transform:translateY(-8px) scale(1)} to{transform:translateY(8px) scale(1.05)} }
+    @media (prefers-reduced-motion: reduce) {
+      .fade-in, .floating { animation-duration: 0.01ms; animation-iteration-count: 1 }
     }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      background: var(--bg);
-      color: var(--fg);
-    }
-
-    body {
-      overflow: hidden;
-      position: relative;
-      min-height: 100vh;
-    }
-
-    canvas#demo-canvas {
+    :root { --fract-bg:#0b1120; --fract-fg:#e0f2fe }
+    .dark { --fract-bg:#020617; --fract-fg:#f8fafc }
+    #fractalOverlay {
       position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      display: block;
-      touch-action: none;
-    }
-    #control-bar {
-      position: fixed;
-      top: 1.25rem;
-      right: 1.25rem;
+      left: 0;
+      right: 0;
+      top: clamp(5.5rem, 8vw, 8.5rem);
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      padding: 0.75rem 1rem;
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: 0.75rem;
-      box-shadow: 0 1rem 2.5rem var(--shadow);
-      backdrop-filter: blur(10px);
-      z-index: 10;
+      justify-content: center;
+      padding: 0 1.5rem;
+      pointer-events: none;
+      z-index: 20;
+      opacity: 0;
+      transform: translateY(0);
+      transition: opacity .3s ease, transform .45s ease;
+      will-change: transform, opacity;
     }
-
-
-    #control-bar label {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      font-size: 0.85rem;
+    #fractalOverlay[data-enabled="true"] {
+      opacity: 1;
+      pointer-events: auto;
     }
-
-    #control-bar select,
-    #control-bar button,
-    #control-bar input[type="checkbox"],
-    #control-bar input[type="text"] {
-      font: inherit;
-    }
-
-    #control-bar button,
-    #control-bar select {
-      border-radius: 0.5rem;
-      border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.08);
-      color: inherit;
-      padding: 0.35rem 0.65rem;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    #control-bar button:hover,
-    #control-bar select:hover,
-    #control-bar button:focus-visible,
-    #control-bar select:focus-visible {
-      background: rgba(255, 255, 255, 0.15);
-      outline: none;
-    }
-
-    #control-bar button[aria-pressed="true"] {
-      background: rgba(247, 183, 51, 0.18);
-      border-color: rgba(247, 183, 51, 0.4);
-    }
-
-    #fps-meter {
-      min-width: 4rem;
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    #settings-panel {
-      position: fixed;
-      left: 1.25rem;
-      top: 1.25rem;
-      width: min(320px, 90vw);
+    #fractalOverlay .fractal-overlay-shell {
       display: flex;
       flex-direction: column;
+      align-items: flex-end;
       gap: 0.75rem;
-      padding: 1rem 1.25rem 1.5rem;
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: 0.75rem;
-      box-shadow: 0 1rem 2.5rem var(--shadow);
-      backdrop-filter: blur(10px);
-      z-index: 9;
+      width: min(100%, 1100px);
     }
-
-    #settings-panel header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    #settings-title {
-      margin: 0;
-      font-size: 1rem;
-      font-weight: 600;
-    }
-
-    #settings-form {
-      display: grid;
-      gap: 0.75rem;
-    }
-
-    #settings-form .field {
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      font-size: 0.85rem;
-    }
-
-    #settings-form .field input,
-    #settings-form .field select {
+    #fractalOverlay canvas {
       width: 100%;
-      border-radius: 0.5rem;
-      border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.08);
-      color: inherit;
-      padding: 0.35rem 0.5rem;
+      height: auto;
+      border-radius: 1.75rem;
+      box-shadow: 0 32px 80px rgba(15,23,42,.22);
+      background: radial-gradient(circle at top, rgba(255,255,255,.08), rgba(15,23,42,.35));
     }
-
-    #settings-form .field input[type="range"] {
-      accent-color: var(--accent);
-      padding: 0;
+    .dark #fractalOverlay canvas {
+      box-shadow: 0 32px 120px rgba(15,23,42,.55);
+      background: radial-gradient(circle at top, rgba(148,163,184,.08), rgba(2,6,23,.6));
     }
-
-    #settings-panel button {
-      font: inherit;
-      border-radius: 0.5rem;
-      border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.12);
-      color: inherit;
-      padding: 0.35rem 0.65rem;
-      cursor: pointer;
-    }
-
-    #settings-panel button:hover,
-    #settings-panel button:focus-visible {
-      background: rgba(255, 255, 255, 0.2);
-      outline: none;
-    }
-
-    #explain-toggle {
-      display: flex;
+    #fractalOverlay .fractal-overlay-link {
+      align-self: flex-end;
+      display: inline-flex;
       align-items: center;
       gap: 0.45rem;
+      padding: 0.45rem 0.9rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(148,163,184,.45);
+      background: rgba(15,23,42,.72);
+      color: var(--fract-fg);
+      text-decoration: none;
       font-size: 0.85rem;
-    }
-
-    #explain-panel {
-      position: fixed;
-      left: 1.25rem;
-      bottom: 1.25rem;
-      max-width: min(420px, 90vw);
-      padding: 0.85rem 1rem;
-      border-radius: 0.75rem;
-      border: 1px solid var(--border);
-      background: rgba(8, 10, 18, 0.85);
-      box-shadow: 0 1rem 2.5rem var(--shadow);
-      backdrop-filter: blur(10px);
-      font-size: 0.9rem;
-      line-height: 1.5;
-      z-index: 8;
-    }
-
-    #explain-panel h3 {
-      margin: 0 0 0.35rem;
-      font-size: 1rem;
       font-weight: 600;
+      letter-spacing: 0.02em;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 20px 48px rgba(2,6,23,.38);
+      transition: background .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease;
     }
-
-    #explain-panel p {
-      margin: 0.25rem 0;
+    .dark #fractalOverlay .fractal-overlay-link {
+      border-color: rgba(148,163,184,.35);
+      background: rgba(15,23,42,.78);
+      box-shadow: 0 28px 64px rgba(2,6,23,.55);
+      color: var(--fract-fg);
     }
-
-    #explain-panel a {
-      color: var(--accent);
+    #fractalOverlay .fractal-overlay-link:hover,
+    #fractalOverlay .fractal-overlay-link:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(8,145,178,.55);
+      background: rgba(8,145,178,.2);
+      box-shadow: 0 30px 80px rgba(8,145,178,.35);
+      outline: none;
     }
-
-    @media (max-width: 768px) {
-      #control-bar {
-        position: fixed;
-        top: auto;
-        bottom: 1rem;
-        right: 50%;
-        transform: translateX(50%);
-        width: min(90vw, 420px);
-        justify-content: center;
-      }
-
-      #settings-panel {
-        top: auto;
-        bottom: calc(1rem + 70px);
-        left: 50%;
-        transform: translateX(-50%);
-        width: min(95vw, 420px);
-      }
-
-      #explain-panel {
-        left: 50%;
-        bottom: calc(1rem + 70px + 220px);
-        transform: translateX(-50%);
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-      }
-    }
-
-    noscript {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.8);
+    button[data-fractal-toggle][data-state="active"] {
+      background-color: rgb(14 116 144);
+      border-color: rgba(8,145,178,.9);
       color: #fff;
-      display: grid;
-      place-items: center;
-      font-size: 1.1rem;
-      padding: 2rem;
-      z-index: 100;
+      box-shadow: 0 14px 30px rgba(8,145,178,.28);
+    }
+    .dark button[data-fractal-toggle][data-state="active"] {
+      background-color: rgba(8,145,178,.85);
+      border-color: rgba(8,145,178,.75);
+      color: #f8fafc;
+      box-shadow: 0 16px 38px rgba(8,145,178,.42);
+    }
+    button[data-fractal-mode] {
+      position: relative;
+      overflow: hidden;
+    }
+    button[data-fractal-mode]::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      opacity: .55;
+      transition: opacity .3s ease;
+      pointer-events: none;
+    }
+    button[data-fractal-mode][data-mode="aurora"]::after {
+      background: linear-gradient(120deg, rgba(56,189,248,.75), rgba(167,139,250,.65));
+    }
+    button[data-fractal-mode][data-mode="kaleidoscope"]::after {
+      background: linear-gradient(135deg, rgba(251,191,36,.75), rgba(244,114,182,.65));
+    }
+    button[data-fractal-mode][data-mode="golden"]::after {
+      background: linear-gradient(135deg, rgba(34,197,94,.72), rgba(234,179,8,.7));
+    }
+    button[data-fractal-mode]:hover::after,
+    button[data-fractal-mode]:focus-visible::after {
+      opacity: .88;
     }
   </style>
 </head>
-<body>
-  <canvas id="demo-canvas" aria-label="Interactive mathematical visualizations" role="img"></canvas>
-
-  <div id="control-bar" role="region" aria-label="Global demo controls">
-    <label for="demo-select">Demo</label>
-    <select id="demo-select" name="demo-select" aria-label="Choose a mathematical demo"></select>
-    <button id="play-pause" type="button" aria-pressed="false" aria-label="Pause animation">Pause</button>
-    <label for="calm-toggle" title="Reduce motion and complexity">
-      <input type="checkbox" id="calm-toggle" name="calm-toggle" />
-      Calm Mode
-    </label>
-    <span id="fps-meter" aria-live="polite" aria-label="Frames per second">-- FPS</span>
-    <button id="download-btn" type="button" aria-label="Download current frame as PNG">Download PNG</button>
+<body class="relative min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-900 antialiased dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
+  <div class="pointer-events-none absolute inset-0 overflow-hidden">
+    <div class="floating absolute -top-36 right-12 h-72 w-72 rounded-full bg-brand-500/10 blur-3xl dark:bg-brand-500/20"></div>
+    <div class="floating absolute bottom-0 left-[-6rem] h-64 w-64 rounded-full bg-brand-500/5 blur-3xl dark:bg-brand-500/15"></div>
+    <div class="absolute inset-x-0 top-24 mx-auto h-72 max-w-4xl rounded-full bg-white/60 blur-3xl dark:bg-slate-900/40"></div>
   </div>
 
-  <aside id="settings-panel" role="region" aria-label="Demo fine controls">
-    <header>
-      <h2 id="settings-title">Settings</h2>
-      <button id="reset-demo" type="button">Reset</button>
-    </header>
-    <form id="settings-form" autocomplete="off"></form>
-    <label id="explain-toggle">
-      <input type="checkbox" id="explain-checkbox" name="explain" />
-      Explain the math
-    </label>
-  </aside>
+  <header data-header class="sticky top-0 z-30 border-b border-transparent transition-all duration-300">
+    <div class="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-4 md:flex-nowrap md:py-6">
+      <a href="/links.html" class="flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-sm font-semibold tracking-wide text-slate-700 backdrop-blur dark:bg-slate-900/60 dark:text-slate-200">
+        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-white">IJ</span>
+        Isaac Johnston
+      </a>
+      <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+        <button id="themeToggle" type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200" title="Toggle light and dark theme">
+          <span aria-hidden="true">🌗</span>
+          Theme
+        </button>
+        <button data-fractal-toggle type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200" title="Launch the interactive fractal demo" data-state="inactive" aria-pressed="false">
+          <span aria-hidden="true">✨</span>
+          <span data-fractal-toggle-label>Launch demo</span>
+        </button>
+        <button data-fractal-mode type="button" class="hidden items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200 sm:inline-flex" data-mode="aurora" title="Switch fractal style">
+          Mode: Aurora drift
+        </button>
+        <button data-fractal-shuffle type="button" class="hidden items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200 sm:inline-flex" title="Generate a new fractal seed">
+          Shuffle
+        </button>
+      </div>
+    </div>
+    <nav class="mx-auto flex w-full max-w-5xl items-center justify-center gap-4 px-4 pb-3 text-sm font-medium text-slate-600 dark:text-slate-300 md:hidden">
+      <a class="transition hover:text-brand-600 dark:hover:text-brand-400" href="#focus">Focus</a>
+      <a class="transition hover:text-brand-600 dark:hover:text-brand-400" href="#projects">Projects</a>
+      <a class="transition hover:text-brand-600 dark:hover:text-brand-400" href="#about">About</a>
+      <a class="transition hover:text-brand-600 dark:hover:text-brand-400" href="#contact">Contact</a>
+    </nav>
+  </header>
 
-  <section id="explain-panel" hidden>
-    <h3 id="explain-title"></h3>
-    <div id="explain-content"></div>
-  </section>
+  <div id="fractalOverlay" data-enabled="false" aria-hidden="true">
+    <div class="fractal-overlay-shell">
+      <canvas id="fractalCanvas" aria-hidden="true"></canvas>
+      <a class="fractal-overlay-link" href="/math-gallery.html">
+        Explore the full math demo gallery
+        <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
 
-  <noscript>This interactive gallery requires JavaScript to render the mathematical demos.</noscript>
-  <script type="module" src="js/main.js"></script>
+  <main class="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-24 px-4 pb-24">
+    <section id="hero" class="fade-in relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white/80 p-8 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60 md:p-12">
+      <div class="floating pointer-events-none absolute -top-24 left-1/3 h-60 w-60 rounded-full bg-brand-500/10 blur-3xl dark:bg-brand-500/20"></div>
+      <div class="relative grid gap-12 md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] md:items-start">
+        <div class="space-y-7">
+          <span class="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-700 dark:border-brand-500/40 dark:bg-brand-500/10 dark:text-brand-200">Now building</span>
+          <h1 class="text-4xl font-extrabold leading-tight text-slate-900 dark:text-white md:text-5xl">Operator-minded builder helping teams launch resilient ventures.</h1>
+          <p class="text-lg text-slate-600 dark:text-slate-300">I partner with founders, property leaders, and community builders to move from idea to traction. My approach blends capital strategy, product experimentation, and operational rigor, grounded in clarity and integrity.</p>
+          <div class="flex flex-wrap gap-3">
+            <a href="https://calendar.app.google/V6WfbjRRDxbFr6X69" class="inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">Book a 15‑min call</a>
+            <a href="/resume.pdf" class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200">Download resume</a>
+            <a href="#projects" class="inline-flex items-center gap-2 rounded-full border border-transparent bg-slate-900/90 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-900 dark:bg-white/10 dark:text-white dark:hover:bg-white/20">Explore active projects</a>
+          </div>
+          <dl class="grid gap-4 sm:grid-cols-3">
+            <div class="rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-soft dark:border-slate-800/60 dark:bg-slate-900/50">
+              <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">0 → 1 MVPs</dt>
+              <dd class="mt-2 text-sm text-slate-600 dark:text-slate-300">Hands-on support for Farm Compliance, student recruiting, and food ventures.</dd>
+            </div>
+            <div class="rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-soft dark:border-slate-800/60 dark:bg-slate-900/50">
+              <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Operator minded</dt>
+              <dd class="mt-2 text-sm text-slate-600 dark:text-slate-300">Blend finance, growth, and compliance to unlock measurable progress.</dd>
+            </div>
+            <div class="rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-soft dark:border-slate-800/60 dark:bg-slate-900/50">
+              <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Principled partner</dt>
+              <dd class="mt-2 text-sm text-slate-600 dark:text-slate-300">Lead with values that prioritize clarity, trust, and long-term stewardship.</dd>
+            </div>
+          </dl>
+        </div>
+        <div class="relative">
+          <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft backdrop-blur-xl dark:border-slate-800/70 dark:bg-slate-950/70">
+            <div class="flex items-center justify-between gap-4">
+              <span class="inline-flex items-center gap-2 rounded-full bg-brand-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-200"><span aria-hidden="true">⚡️</span> Current focus</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">Updated weekly</span>
+            </div>
+            <p class="mt-4 text-sm text-slate-600 dark:text-slate-300">These are the hands-on sprints I’m running inside the initiatives detailed in the Projects section below. Consider them the in-flight tasks powering each venture’s status.</p>
+            <ul class="mt-6 space-y-4 text-sm text-slate-600 dark:text-slate-300">
+              <li class="flex gap-3">
+                <span class="mt-1 text-brand-600">▹</span>
+                <span><strong>Farm Compliance MVP (in development):</strong> rolling out multilingual onboarding flows and audit-ready checklists for southeastern growers.</span>
+              </li>
+              <li class="flex gap-3">
+                <span class="mt-1 text-brand-600">▹</span>
+                <span><strong>UNCC Student Network (active):</strong> expanding a talent marketplace that connects students with operators and recruiters.</span>
+              </li>
+              <li class="flex gap-3">
+                <span class="mt-1 text-brand-600">▹</span>
+                <span><strong>Cali Baking MVP (in development):</strong> testing new product drops and local delivery partnerships for a growing food brand.</span>
+              </li>
+            </ul>
+            <div class="mt-8 rounded-2xl border border-dashed border-brand-500/40 bg-brand-500/5 p-5 text-sm text-slate-600 dark:border-brand-500/30 dark:text-slate-200">
+              <p class="font-semibold text-brand-700 dark:text-brand-200">Exploring</p>
+              <p class="mt-1">Angel-backed real estate plays, community revitalization projects, and operator-in-residence opportunities.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="focus" class="space-y-8">
+      <div class="space-y-2 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-600 dark:text-brand-300">Focus areas</p>
+        <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Where I create leverage</h2>
+        <p class="mx-auto max-w-3xl text-base text-slate-600 dark:text-slate-300">My sweet spot is collaborating with founders and operators who need a strategic generalist: someone who can model capital stacks, ship product experiments, and activate community distribution.</p>
+      </div>
+      <div class="grid gap-6 md:grid-cols-2">
+        <article class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60">
+          <div class="flex items-center gap-3 text-brand-600 dark:text-brand-300">
+            <span class="text-2xl">🏢</span>
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Real estate &amp; capital strategy</h3>
+          </div>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Underwriting, creative financing structures, and community partnerships to turn underutilized assets into thriving hubs.</p>
+        </article>
+        <article class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60">
+          <div class="flex items-center gap-3 text-brand-600 dark:text-brand-300">
+            <span class="text-2xl">🛠️</span>
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Product &amp; growth experimentation</h3>
+          </div>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Rapid sprints, customer interviews, and data-informed pilots that validate demand before scaling operations.</p>
+        </article>
+        <article class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60">
+          <div class="flex items-center gap-3 text-brand-600 dark:text-brand-300">
+            <span class="text-2xl">🤝</span>
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Community &amp; partnerships</h3>
+          </div>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Building coalitions across universities, small businesses, and local communities to amplify opportunity.</p>
+        </article>
+        <article class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60">
+          <div class="flex items-center gap-3 text-brand-600 dark:text-brand-300">
+            <span class="text-2xl">🧭</span>
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Operational excellence</h3>
+          </div>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Designing checklists, onboarding flows, and playbooks that keep teams accountable to mission and metrics.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="projects" class="space-y-8">
+      <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-600 dark:text-brand-300">Projects</p>
+          <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Building with operators in the field</h2>
+          <p class="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">Status badges reflect where each initiative sits today, complementing the “Current focus” sprints above so you can see both the week-to-week work and the broader milestone.</p>
+        </div>
+        <a href="#contact" class="inline-flex items-center gap-2 text-sm font-semibold text-brand-600 transition hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200">Share an opportunity →</a>
+      </div>
+      <div class="space-y-6">
+        <a href="/projects/farm-compliance.html" class="group block rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-800/70 dark:bg-slate-950/60" aria-label="Farm Compliance MVP project overview">
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="text-xl font-semibold text-slate-900 dark:text-white">Farm Compliance MVP</h3>
+            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-500/20 dark:text-amber-100">In development</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">A multilingual onboarding and audit preparation toolkit in build-mode to keep growers aligned with labor, safety, and food-handling standards before the public beta.</p>
+          <ul class="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+            <li class="flex gap-2"><span class="text-brand-600">•</span> Implemented mobile-first checklists with offline sync for in-field teams.</li>
+            <li class="flex gap-2"><span class="text-brand-600">•</span> Partnering with agronomists to co-create compliance education modules.</li>
+          </ul>
+          <span class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-600 transition group-hover:text-brand-500 dark:text-brand-300 dark:group-hover:text-brand-200">View project overview<span aria-hidden="true">→</span></span>
+        </a>
+        <a href="/projects/uncc-student-network.html" class="group block rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-800/70 dark:bg-slate-950/60" aria-label="UNCC Student Network project overview">
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="text-xl font-semibold text-slate-900 dark:text-white">UNCC Student Network</h3>
+            <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100">Active</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Community-driven recruiting that connects students with startups, growth-stage companies, and civic projects across Charlotte. Currently running meetups and matching talent with operator roles.</p>
+          <ul class="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+            <li class="flex gap-2"><span class="text-brand-600">•</span> Launching micro-events and office hours to surface talent.</li>
+            <li class="flex gap-2"><span class="text-brand-600">•</span> Coordinating hiring pipelines for internships and operator residencies.</li>
+          </ul>
+          <span class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-600 transition group-hover:text-brand-500 dark:text-brand-300 dark:group-hover:text-brand-200">View project overview<span aria-hidden="true">→</span></span>
+        </a>
+        <a href="/projects/cali-baking.html" class="group block rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-800/70 dark:bg-slate-950/60" aria-label="Cali Baking MVP project overview">
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="text-xl font-semibold text-slate-900 dark:text-white">Cali Baking MVP</h3>
+            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-500/20 dark:text-amber-100">In development</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Experiments in e-commerce, delivery, and subscription models that scale a beloved local bakery beyond brick-and-mortar, still validating before a public launch.</p>
+          <ul class="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+            <li class="flex gap-2"><span class="text-brand-600">•</span> Built drop schedules and SMS waitlists to drive limited releases.</li>
+            <li class="flex gap-2"><span class="text-brand-600">•</span> Testing partnerships with coffee shops and community markets.</li>
+          </ul>
+          <span class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-600 transition group-hover:text-brand-500 dark:text-brand-300 dark:group-hover:text-brand-200">View project overview<span aria-hidden="true">→</span></span>
+        </a>
+      </div>
+    </section>
+
+    <section id="journey" class="space-y-8">
+      <div class="space-y-2 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-600 dark:text-brand-300">Journey</p>
+        <h2 class="text-3xl font-bold text-slate-900 dark:text-white">A path shaped by service and execution</h2>
+        <p class="mx-auto max-w-3xl text-base text-slate-600 dark:text-slate-300">From real estate deals to campus ecosystems, I lead with empathy, data, and the conviction that business can uplift communities.</p>
+      </div>
+      <ol class="relative space-y-6 border-l border-slate-200 pl-6 dark:border-slate-800">
+        <li class="relative">
+          <span class="absolute -left-[13px] mt-1 h-3 w-3 rounded-full border border-brand-500 bg-white dark:border-brand-400 dark:bg-slate-950"></span>
+          <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-5 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Real estate investing &amp; capital advisory</h3>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Structured creative deals, underwrote acquisitions, and supported operators with go-to-market plans backed by disciplined financial models.</p>
+          </div>
+        </li>
+        <li class="relative">
+          <span class="absolute -left-[13px] mt-1 h-3 w-3 rounded-full border border-brand-500 bg-white dark:border-brand-400 dark:bg-slate-950"></span>
+          <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-5 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Community leadership &amp; service</h3>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Organized mentorship initiatives, resource drives, and practical support for families and students across the Carolinas.</p>
+          </div>
+        </li>
+        <li class="relative">
+          <span class="absolute -left-[13px] mt-1 h-3 w-3 rounded-full border border-brand-500 bg-white dark:border-brand-400 dark:bg-slate-950"></span>
+          <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-5 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Startup operator &amp; advisor</h3>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Guiding teams through MVP launches, analytics instrumentation, and partnership development to reach early proof points.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section id="links" class="space-y-8">
+      <div class="space-y-2 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-600 dark:text-brand-300">Quick links</p>
+        <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Dive deeper</h2>
+        <p class="mx-auto max-w-3xl text-base text-slate-600 dark:text-slate-300">Resources, calendars, and artifacts to learn more about my work. Save what resonates or share it with someone who might benefit.</p>
+      </div>
+      <div class="grid gap-5 sm:grid-cols-2">
+        <a class="group rounded-3xl border border-slate-200/80 bg-white/70 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60" href="/resume.pdf">
+          <div class="flex items-center justify-between">
+            <div class="text-lg font-semibold text-slate-900 dark:text-white">Resume</div>
+            <span class="text-xl">📄</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">One-page overview of roles, projects, and impact.</p>
+          <p class="mt-4 text-sm font-semibold text-brand-600 dark:text-brand-300">Download PDF →</p>
+        </a>
+        <a class="group rounded-3xl border border-slate-200/80 bg-white/70 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60" href="https://calendar.app.google/V6WfbjRRDxbFr6X69">
+          <div class="flex items-center justify-between">
+            <div class="text-lg font-semibold text-slate-900 dark:text-white">Book time</div>
+            <span class="text-xl">🗓️</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">15-minute intro chats to explore partnerships or brainstorm ideas.</p>
+          <p class="mt-4 text-sm font-semibold text-brand-600 dark:text-brand-300">Book via Google Calendar →</p>
+        </a>
+        <a class="group rounded-3xl border border-slate-200/80 bg-white/70 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60" href="mailto:isaacinpursuit@gmail.com">
+          <div class="flex items-center justify-between">
+            <div class="text-lg font-semibold text-slate-900 dark:text-white">Email</div>
+            <span class="text-xl">✉️</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Reach me directly with opportunities, questions, or introductions.</p>
+          <p class="mt-4 text-sm font-semibold text-brand-600 dark:text-brand-300">isaacinpursuit@gmail.com</p>
+        </a>
+        <a class="group rounded-3xl border border-slate-200/80 bg-white/70 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-950/60" href="https://www.linkedin.com/in/isaacinpursuit/">
+          <div class="flex items-center justify-between">
+            <div class="text-lg font-semibold text-slate-900 dark:text-white">LinkedIn</div>
+            <span class="text-xl">🔗</span>
+          </div>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Connect professionally and follow along with weekly build notes.</p>
+          <p class="mt-4 text-sm font-semibold text-brand-600 dark:text-brand-300">View profile →</p>
+        </a>
+      </div>
+    </section>
+
+    <section id="about" class="space-y-8">
+      <div class="space-y-2 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-600 dark:text-brand-300">About</p>
+        <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Guided by principles, focused on impact</h2>
+      </div>
+      <div class="grid gap-10 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] md:items-start">
+        <div class="space-y-4 text-base leading-relaxed text-slate-600 dark:text-slate-300">
+          <p>I build at the intersection of real estate, finance, and entrepreneurship. Each chapter of my career has been rooted in a commitment to serve people, steward resources well, and grow communities with integrity.</p>
+          <p>Whether structuring a deal, prototyping an MVP, or facilitating a partnership, I obsess over clarity, measurable outcomes, and the human beings affected by the work. Excellence should open doors for others and compound long-term impact.</p>
+        </div>
+        <div class="space-y-4">
+          <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Values I bring to every room</h3>
+            <ul class="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-300">
+              <li class="flex gap-3"><span class="mt-1 text-brand-600">▹</span><span><strong>Stewardship:</strong> Treat capital, time, and trust as gifts to be multiplied.</span></li>
+              <li class="flex gap-3"><span class="mt-1 text-brand-600">▹</span><span><strong>Clarity:</strong> Communicate strategy and next actions so teams stay aligned.</span></li>
+              <li class="flex gap-3"><span class="mt-1 text-brand-600">▹</span><span><strong>Presence:</strong> Show up for people beyond the deal through mentorship, encouragement, and follow-through.</span></li>
+            </ul>
+          </div>
+          <div class="rounded-3xl border border-dashed border-brand-500/40 bg-brand-500/5 p-6 text-sm text-slate-600 dark:border-brand-500/30 dark:text-slate-200">
+            <p class="font-semibold text-brand-700 dark:text-brand-200">Let’s collaborate</p>
+            <p class="mt-2">If you’re building something that needs a strategic operator with a service-oriented mindset, I’d love to connect.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="space-y-8">
+      <div class="space-y-2 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-brand-600 dark:text-brand-300">Contact</p>
+        <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Let’s start a conversation</h2>
+        <p class="mx-auto max-w-2xl text-base text-slate-600 dark:text-slate-300">Share what you’re building, where you’re feeling stuck, or how we might co-create impact. I read every message.</p>
+      </div>
+      <div class="grid gap-10 md:grid-cols-2 md:items-start">
+        <form action="https://formspree.io/f/mkgnjopd" method="POST" data-form class="space-y-5 rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200" for="name">Name</label>
+            <input required id="name" type="text" name="name" placeholder="Your name" class="w-full rounded-2xl border border-slate-300 bg-white/90 px-4 py-3 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200" for="email">Email</label>
+            <input required id="email" type="email" name="email" placeholder="you@example.com" class="w-full rounded-2xl border border-slate-300 bg-white/90 px-4 py-3 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200" for="message">Message</label>
+            <textarea required id="message" name="message" rows="5" placeholder="What are you exploring?" class="w-full rounded-2xl border border-slate-300 bg-white/90 px-4 py-3 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100"></textarea>
+          </div>
+          <div class="space-y-3">
+            <button class="w-full rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">Send message</button>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Powered by Formspree. Prefer email? <a class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200" href="mailto:isaacinpursuit@gmail.com">isaacinpursuit@gmail.com</a>.</p>
+            <p data-form-status role="status" aria-live="polite" class="hidden text-sm font-medium text-brand-600 dark:text-brand-300"></p>
+          </div>
+        </form>
+        <div class="space-y-6">
+          <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Prefer a direct line?</h3>
+            <ul class="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-300">
+              <li><a class="inline-flex items-center gap-2 text-brand-600 transition hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200" href="mailto:isaacinpursuit@gmail.com"><span aria-hidden="true">✉️</span> isaacinpursuit@gmail.com</a></li>
+              <li><a class="inline-flex items-center gap-2 text-brand-600 transition hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200" href="https://calendar.app.google/V6WfbjRRDxbFr6X69"><span aria-hidden="true">🗓️</span> Book intro call</a></li>
+              <li><a class="inline-flex items-center gap-2 text-brand-600 transition hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200" href="https://www.linkedin.com/in/isaacinpursuit/"><span aria-hidden="true">💼</span> LinkedIn updates</a></li>
+            </ul>
+          </div>
+          <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Book a meeting</h3>
+            <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Reserve a 15-minute slot on my Google appointment schedule for quick intros or project scoping.</p>
+            <a href="https://calendar.app.google/V6WfbjRRDxbFr6X69" class="mt-4 inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">Book via Google Calendar</a>
+          </div>
+          <div class="rounded-3xl border border-dashed border-brand-500/40 bg-brand-500/5 p-6 text-sm text-slate-600 dark:border-brand-500/30 dark:text-slate-200">
+            <p class="font-semibold text-brand-700 dark:text-brand-200">Looking for a collaborator?</p>
+            <p class="mt-2">Bring me in to evaluate a deal, run a sprint, or mentor a team. I’ll map the path to traction with you.</p>
+          </div>
+        </div>
+      </div>
+      <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-soft dark:border-slate-800/70 dark:bg-slate-950/60">
+        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Alternate intake form</h3>
+        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Prefer a structured questionnaire? Submit the Google Form below. It routes to the same inbox and helps me prep before we connect.</p>
+        <div class="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-inner dark:border-slate-800 dark:bg-slate-900/40">
+          <iframe title="Google intake form" src="https://forms.gle/QEEHH4ic7yET2B9p9" loading="lazy" class="h-[640px] w-full" allowfullscreen></iframe>
+        </div>
+        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">If the form doesn’t load, <a class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200" href="https://forms.gle/QEEHH4ic7yET2B9p9" target="_blank" rel="noopener">open it in a new tab</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <a href="#hero" data-back-to-top class="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-full bg-slate-900/90 px-4 py-2 text-sm font-semibold text-white shadow-soft transition hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 opacity-0 pointer-events-none translate-y-4">Back to top<span aria-hidden="true">↑</span></a>
+
+  <footer class="relative z-10 mx-auto mt-12 flex w-full max-w-5xl flex-col items-center gap-3 px-4 pb-10 text-center text-xs text-slate-500 dark:text-slate-400">
+    <p>© <span id="year"></span> Isaac Johnston. Built with persistence, craft, and plenty of coffee.</p>
+    <p class="flex flex-wrap justify-center gap-4">
+      <a class="hover:text-brand-600 dark:hover:text-brand-300" href="#hero">Back to top</a>
+      <a class="hover:text-brand-600 dark:hover:text-brand-300" href="/links.html">More resources</a>
+      <a class="hover:text-brand-600 dark:hover:text-brand-300" href="mailto:isaacinpursuit@gmail.com">Say hello</a>
+    </p>
+  </footer>
+
+  <script>
+    // Theme persistence
+    const applyTheme = () => {
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    }
+    applyTheme();
+    document.getElementById('themeToggle')?.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.theme = isDark ? 'dark' : 'light';
+    });
+
+    // Fractal demo overlay
+    (() => {
+      const wrap = document.getElementById('fractalOverlay');
+      const canvas = document.getElementById('fractalCanvas');
+      if (!wrap || !canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const toggleButton = document.querySelector('[data-fractal-toggle]');
+      const modeButton = document.querySelector('[data-fractal-mode]');
+      const shuffleButton = document.querySelector('[data-fractal-shuffle]');
+      const themeButton = document.getElementById('themeToggle');
+
+      const MODE_STORAGE_KEY = 'fractaldemo:mode';
+      const FRACTAL_MODES = ['aurora', 'kaleidoscope', 'golden'];
+      const FRACTAL_MODE_LABELS = {
+        aurora: 'Aurora drift',
+        kaleidoscope: 'Kaleidoscope',
+        golden: 'Golden bloom',
+      };
+      const FRACTAL_MODE_DESCRIPTIONS = {
+        aurora: 'Layered aurora noise fields',
+        kaleidoscope: 'Mirrored sacred-geometry kaleidoscope',
+        golden: 'Golden-ratio phyllotaxis tree',
+      };
+
+      function mulberry32(seed) {
+        return function () {
+          let t = (seed += 0x6d2b79f5);
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function makeNoise(seed) {
+        const rand = mulberry32(seed);
+        const gradients = [];
+        for (let i = 0; i < 256; i++) {
+          gradients.push({ x: rand() * 2 - 1, y: rand() * 2 - 1 });
+        }
+        const perm = new Uint8Array(512);
+        for (let i = 0; i < 512; i++) perm[i] = i & 255;
+        for (let i = 0; i < 256; i++) {
+          const j = (rand() * 256) | 0;
+          const tmp = perm[i];
+          perm[i] = perm[j];
+          perm[j] = tmp;
+          perm[i + 256] = perm[i];
+        }
+        const fade = t => t * t * t * (t * (t * 6 - 15) + 10);
+        const lerp = (a, b, t) => a + t * (b - a);
+
+        function grad(ix, iy, x, y) {
+          const g = gradients[perm[(ix + perm[iy & 255]) & 255]];
+          return g.x * (x - ix) + g.y * (y - iy);
+        }
+
+        return (x, y) => {
+          const x0 = Math.floor(x);
+          const y0 = Math.floor(y);
+          const u = fade(x - x0);
+          const v = fade(y - y0);
+          const n00 = grad(x0, y0, x, y);
+          const n10 = grad(x0 + 1, y0, x, y);
+          const n01 = grad(x0, y0 + 1, x, y);
+          const n11 = grad(x0 + 1, y0 + 1, x, y);
+          return lerp(lerp(n00, n10, u), lerp(n01, n11, u), v);
+        };
+      }
+
+      function randomSeed() {
+        if (globalThis.crypto && typeof globalThis.crypto.getRandomValues === 'function') {
+          const values = new Uint32Array(1);
+          globalThis.crypto.getRandomValues(values);
+          return values[0];
+        }
+        return (Math.random() * 0xffffffff) >>> 0;
+      }
+
+      function parseCssColor(value) {
+        const color = value.trim();
+        if (!color) return null;
+        const hexMatch = color.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+        if (hexMatch) {
+          let hex = hexMatch[1];
+          if (hex.length === 3) {
+            hex = hex
+              .split('')
+              .map(char => char + char)
+              .join('');
+          }
+          const r = parseInt(hex.slice(0, 2), 16);
+          const g = parseInt(hex.slice(2, 4), 16);
+          const b = parseInt(hex.slice(4, 6), 16);
+          if (Number.isFinite(r) && Number.isFinite(g) && Number.isFinite(b)) {
+            return { r, g, b };
+          }
+        }
+        const rgbMatch = color.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*([\d.]+))?\s*\)$/i);
+        if (rgbMatch) {
+          const clamp = v => Math.max(0, Math.min(255, v | 0));
+          const r = clamp(parseInt(rgbMatch[1], 10));
+          const g = clamp(parseInt(rgbMatch[2], 10));
+          const b = clamp(parseInt(rgbMatch[3], 10));
+          if (Number.isFinite(r) && Number.isFinite(g) && Number.isFinite(b)) {
+            return { r, g, b };
+          }
+        }
+        return null;
+      }
+
+      function persistMode(value) {
+        try {
+          localStorage.setItem(MODE_STORAGE_KEY, value);
+        } catch (error) {
+          // Ignore storage write failures (private mode, etc.)
+        }
+      }
+
+      function loadStoredMode() {
+        try {
+          const stored = localStorage.getItem(MODE_STORAGE_KEY);
+          if (stored && FRACTAL_MODES.includes(stored)) {
+            return stored;
+          }
+        } catch (error) {
+          // Ignore storage read failures
+        }
+        return FRACTAL_MODES[Math.floor(Math.random() * FRACTAL_MODES.length)];
+      }
+
+      let seed = randomSeed();
+      let mode = loadStoredMode();
+      let noise = makeNoise(seed);
+      let enabled = false;
+      let dpr = 1;
+      let pendingFrame = false;
+      let latestScrollY = window.scrollY;
+      let reduceMotion = false;
+
+      const reduceMotionMedia = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+      if (reduceMotionMedia) {
+        reduceMotion = reduceMotionMedia.matches;
+        const handleReduceChange = event => {
+          reduceMotion = event.matches;
+          if (reduceMotion) {
+            wrap.style.transform = '';
+          } else if (enabled) {
+            handleScroll();
+          }
+          scheduleRender();
+        };
+        if (typeof reduceMotionMedia.addEventListener === 'function') {
+          reduceMotionMedia.addEventListener('change', handleReduceChange);
+        } else if (typeof reduceMotionMedia.addListener === 'function') {
+          reduceMotionMedia.addListener(handleReduceChange);
+        }
+      }
+
+      const schemeMedia = window.matchMedia?.('(prefers-color-scheme: dark)');
+      if (schemeMedia) {
+        const handleSchemeChange = () => scheduleRender();
+        if (typeof schemeMedia.addEventListener === 'function') {
+          schemeMedia.addEventListener('change', handleSchemeChange);
+        } else if (typeof schemeMedia.addListener === 'function') {
+          schemeMedia.addListener(handleSchemeChange);
+        }
+      }
+
+      let classObserver;
+      if (typeof MutationObserver !== 'undefined') {
+        classObserver = new MutationObserver(() => scheduleRender());
+        classObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        window.addEventListener(
+          'beforeunload',
+          () => {
+            classObserver?.disconnect();
+          },
+          { once: true }
+        );
+      }
+
+      function setSeed(value) {
+        seed = value >>> 0;
+        noise = makeNoise(seed);
+      }
+
+      function updateButtons() {
+        if (toggleButton) {
+          toggleButton.setAttribute('data-state', enabled ? 'active' : 'inactive');
+          toggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+          toggleButton.setAttribute('aria-label', enabled ? 'Hide fractal demo' : 'Launch fractal demo');
+          toggleButton.setAttribute('title', enabled ? 'Hide the interactive fractal demo' : 'Launch the interactive fractal demo');
+          const labelEl = toggleButton.querySelector('[data-fractal-toggle-label]');
+          if (labelEl) {
+            labelEl.textContent = enabled ? 'Hide demo' : 'Launch demo';
+          }
+        }
+        if (modeButton) {
+          modeButton.dataset.mode = mode;
+          modeButton.textContent = `Mode: ${FRACTAL_MODE_LABELS[mode]}`;
+          modeButton.setAttribute('title', `Switch fractal style – ${FRACTAL_MODE_DESCRIPTIONS[mode]}`);
+          modeButton.setAttribute('aria-label', `Fractal mode: ${FRACTAL_MODE_LABELS[mode]}`);
+        }
+        wrap.setAttribute('data-mode', mode);
+      }
+
+      function scheduleRender() {
+        if (!enabled || pendingFrame) return;
+        pendingFrame = true;
+        requestAnimationFrame(() => {
+          pendingFrame = false;
+          render();
+        });
+      }
+
+      function handleResize() {
+        if (!enabled) return;
+        const padding = window.innerWidth < 640 ? 28 : 48;
+        const availableWidth = Math.max(320, window.innerWidth - padding);
+        const width = Math.min(availableWidth, 1100);
+        const height = Math.max(320, Math.min(640, width * 0.62, window.innerHeight * 0.65));
+        dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        scheduleRender();
+      }
+
+      function handleScroll() {
+        if (!enabled) return;
+        latestScrollY = window.scrollY;
+        if (reduceMotion) {
+          wrap.style.transform = '';
+        } else {
+          wrap.style.transform = `translateY(${latestScrollY * 0.12}px)`;
+        }
+        scheduleRender();
+      }
+
+      function handleKeyDown(event) {
+        if (event.key === 'Escape') {
+          disable();
+        }
+      }
+
+      function enable() {
+        if (enabled) return;
+        enabled = true;
+        wrap.dataset.enabled = 'true';
+        wrap.setAttribute('aria-hidden', 'false');
+        setSeed(seed);
+        handleResize();
+        handleScroll();
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('keydown', handleKeyDown);
+        scheduleRender();
+        updateButtons();
+      }
+
+      function disable() {
+        if (!enabled) return;
+        enabled = false;
+        wrap.dataset.enabled = 'false';
+        wrap.setAttribute('aria-hidden', 'true');
+        wrap.style.transform = '';
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('keydown', handleKeyDown);
+        updateButtons();
+      }
+
+      function render() {
+        if (!enabled) return;
+        const width = canvas.width;
+        const height = canvas.height;
+        if (!width || !height) return;
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, width, height);
+        ctx.restore();
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const viewWidth = width / dpr;
+        const viewHeight = height / dpr;
+        const styles = getComputedStyle(document.documentElement);
+        const bg = styles.getPropertyValue('--fract-bg').trim() || '#0f172a';
+        const fgRaw = styles.getPropertyValue('--fract-fg').trim() || '#f8fafc';
+        const fgColor = parseCssColor(fgRaw) || { r: 248, g: 250, b: 252 };
+
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, viewWidth, viewHeight);
+
+        const scrollShift = ((latestScrollY % 2400) + 2400) / 2400;
+
+        switch (mode) {
+          case 'kaleidoscope':
+            renderKaleidoscope(viewWidth, viewHeight, fgColor, scrollShift);
+            break;
+          case 'golden':
+            renderGolden(viewWidth, viewHeight, fgColor, scrollShift);
+            break;
+          default:
+            renderAurora(viewWidth, viewHeight, fgColor, scrollShift);
+            break;
+        }
+
+        ctx.globalAlpha = 1;
+        const vignette = ctx.createRadialGradient(
+          viewWidth / 2,
+          viewHeight / 2,
+          12,
+          viewWidth / 2,
+          viewHeight / 2,
+          Math.max(viewWidth, viewHeight) / 1.15
+        );
+        vignette.addColorStop(0, 'rgba(0,0,0,0)');
+        vignette.addColorStop(1, 'rgba(2,6,23,0.22)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, viewWidth, viewHeight);
+      }
+
+      function renderAurora(viewWidth, viewHeight, fgColor, scrollShift) {
+        const step = Math.max(3.5, (4 * Math.max(1, Math.round(dpr))) / dpr);
+        ctx.save();
+        for (let y = 0; y < viewHeight; y += step) {
+          for (let x = 0; x < viewWidth; x += step) {
+            const sampleX = x * dpr * 0.85;
+            const sampleY = y * dpr * 0.85;
+            const n = noise(sampleX + seed * 0.00032, sampleY + seed * 0.00058);
+            const t = (n + 1) / 2;
+            const hue = (scrollShift * 360 + x * 0.18 + y * 0.12) % 360;
+            const lightness = 45 + t * 40;
+            const alpha = 0.32 + t * 0.55;
+            ctx.fillStyle = `hsla(${(hue + 360) % 360}, 82%, ${Math.min(82, Math.max(36, lightness))}%, ${alpha})`;
+            ctx.fillRect(x, y, step, step);
+          }
+        }
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = `rgba(${fgColor.r}, ${fgColor.g}, ${fgColor.b}, 0.12)`;
+        ctx.fillRect(0, 0, viewWidth, viewHeight);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.restore();
+      }
+
+      function renderKaleidoscope(viewWidth, viewHeight, fgColor, scrollShift) {
+        const step = Math.max(2.5, (3.6 * Math.max(1, Math.round(dpr))) / dpr);
+        const centerX = viewWidth / 2;
+        const centerY = viewHeight / 2;
+        const segmentAngle = (Math.PI * 2) / 6;
+        const paletteShift = (seed % 720) / 720 * 360 + scrollShift * 180;
+
+        ctx.save();
+        for (let y = 0; y < viewHeight; y += step) {
+          for (let x = 0; x < viewWidth; x += step) {
+            const dx = x - centerX;
+            const dy = y - centerY;
+            const radius = Math.hypot(dx, dy);
+            let angle = Math.atan2(dy, dx);
+            if (Number.isNaN(angle)) angle = 0;
+            angle = angle % segmentAngle;
+            if (angle < 0) angle += segmentAngle;
+            if (angle > segmentAngle / 2) angle = segmentAngle - angle;
+
+            const mirrorX = Math.cos(angle) * radius;
+            const mirrorY = Math.sin(angle) * radius;
+
+            const swirl = noise(mirrorX * 0.05 + seed * 0.00018, mirrorY * 0.05 + seed * 0.00018);
+            const t = (swirl + 1) / 2;
+            const hue = (paletteShift + (angle / segmentAngle) * 360 + radius * 0.22) % 360;
+            const lightness = 40 + 32 * Math.sin(radius * 0.045 + t * Math.PI);
+            const alpha = 0.25 + 0.45 * Math.pow(t, 1.15);
+            ctx.fillStyle = `hsla(${(hue + 360) % 360}, 78%, ${Math.max(32, Math.min(72, lightness))}%, ${alpha})`;
+            ctx.fillRect(x, y, step, step);
+          }
+        }
+        ctx.globalAlpha = 0.55;
+        ctx.strokeStyle = `rgba(${fgColor.r}, ${fgColor.g}, ${fgColor.b}, 0.75)`;
+        ctx.lineWidth = Math.max(1, viewWidth * 0.0014);
+        ctx.beginPath();
+        const reach = Math.max(viewWidth, viewHeight);
+        for (let i = 0; i < 6; i++) {
+          const theta = (i / 6) * Math.PI * 2;
+          ctx.moveTo(centerX, centerY);
+          ctx.lineTo(centerX + Math.cos(theta) * reach, centerY + Math.sin(theta) * reach);
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+
+      function renderGolden(viewWidth, viewHeight, fgColor, scrollShift) {
+        ctx.save();
+        const centerX = viewWidth / 2;
+        const centerY = viewHeight / 2;
+        const phi = (1 + Math.sqrt(5)) / 2;
+        const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+        const rotation = ((seed % 360) * Math.PI) / 180;
+        const offset = ((seed >>> 5) % 97) / 97;
+        const maxRadius = Math.min(viewWidth, viewHeight) * 0.48;
+        const pointCount = 460;
+        const baseHue = (seed % 360 + scrollShift * 240) % 360;
+
+        const glow = ctx.createRadialGradient(
+          centerX,
+          centerY,
+          Math.min(viewWidth, viewHeight) * 0.1,
+          centerX,
+          centerY,
+          Math.max(viewWidth, viewHeight)
+        );
+        glow.addColorStop(0, `rgba(${fgColor.r}, ${fgColor.g}, ${fgColor.b}, 0.22)`);
+        glow.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, viewWidth, viewHeight);
+
+        for (let i = 0; i < pointCount; i++) {
+          const angle = rotation + i * goldenAngle;
+          const radius = Math.sqrt((i + offset) / pointCount) * maxRadius;
+          const px = centerX + Math.cos(angle) * radius;
+          const py = centerY + Math.sin(angle) * radius;
+          const falloff = 1 - radius / maxRadius;
+          const alpha = 0.18 + 0.55 * Math.max(0, falloff);
+          const hue = (baseHue + i * 0.72 + scrollShift * 180) % 360;
+          const lightness = 48 + falloff * 44;
+          const size = 0.9 + falloff * 3.6;
+          ctx.beginPath();
+          ctx.fillStyle = `hsla(${(hue + 360) % 360}, 86%, ${Math.max(38, Math.min(78, lightness))}%, ${alpha})`;
+          ctx.arc(px, py, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        const trunkWidth = Math.max(1.4, viewWidth * 0.0026);
+        const sway = 0.28 + 0.14 * Math.sin(seed * 0.0003 + scrollShift * Math.PI * 2);
+        const depthLimit = 9;
+        const baseLength = Math.min(viewWidth, viewHeight) / 3.2;
+
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = `rgba(${fgColor.r}, ${fgColor.g}, ${fgColor.b}, 0.55)`;
+        ctx.lineWidth = trunkWidth * 1.08;
+
+        function branch(x, y, length, angle, depth) {
+          if (depth > depthLimit || length < 4) return;
+          const tipX = x + length * Math.cos(angle);
+          const tipY = y - length * Math.sin(angle);
+
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(tipX, tipY);
+          ctx.stroke();
+
+          const nextLength = length / phi;
+          const accentHue = (baseHue + depth * 22 + scrollShift * 180) % 360;
+          ctx.save();
+          ctx.strokeStyle = `hsla(${accentHue}, 88%, 70%, ${0.28 + Math.max(0, 0.18 * (1 - depth / depthLimit))})`;
+          ctx.lineWidth = Math.max(0.8, trunkWidth * Math.pow(0.78, depth + 1));
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(tipX, tipY);
+          ctx.stroke();
+          ctx.restore();
+
+          branch(tipX, tipY, nextLength, angle + sway, depth + 1);
+          branch(tipX, tipY, nextLength, angle - sway, depth + 1);
+          if (depth % 2 === 0) {
+            branch(tipX, tipY, nextLength / phi, angle + sway * 0.35, depth + 2);
+          }
+        }
+
+        branch(centerX, viewHeight * 0.92, baseLength, Math.PI / 2, 0);
+        ctx.restore();
+      }
+
+      toggleButton?.addEventListener('click', () => {
+        if (enabled) {
+          disable();
+        } else {
+          enable();
+        }
+      });
+
+      modeButton?.addEventListener('click', () => {
+        const index = FRACTAL_MODES.indexOf(mode);
+        const next = FRACTAL_MODES[(index + 1) % FRACTAL_MODES.length];
+        mode = next;
+        persistMode(next);
+        updateButtons();
+        if (!enabled) {
+          enable();
+        } else {
+          scheduleRender();
+        }
+      });
+
+      shuffleButton?.addEventListener('click', () => {
+        setSeed(randomSeed());
+        if (!enabled) {
+          enable();
+        } else {
+          scheduleRender();
+        }
+      });
+
+      shuffleButton?.setAttribute('aria-label', 'Shuffle fractal seed');
+
+      themeButton?.addEventListener('click', () => {
+        if (enabled) {
+          requestAnimationFrame(() => scheduleRender());
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (enabled && document.visibilityState === 'visible') {
+          scheduleRender();
+        }
+      });
+
+      window.addEventListener('pageshow', event => {
+        if (event.persisted && enabled) {
+          handleResize();
+          scheduleRender();
+        }
+      });
+
+      updateButtons();
+    })();
+
+    // Header surface effect
+    const headerEl = document.querySelector('[data-header]');
+    const backToTopEl = document.querySelector('[data-back-to-top]');
+    const toggleHeaderState = () => {
+      if (headerEl) {
+        const active = window.scrollY > 16;
+        headerEl.classList.toggle('backdrop-blur-xl', active);
+        headerEl.classList.toggle('border-slate-200/70', active);
+        headerEl.classList.toggle('dark:border-slate-800/70', active);
+        headerEl.classList.toggle('bg-white/70', active);
+        headerEl.classList.toggle('dark:bg-slate-950/70', active);
+        headerEl.classList.toggle('shadow-soft', active);
+      }
+
+      if (backToTopEl) {
+        const show = window.scrollY > 360;
+        backToTopEl.classList.toggle('pointer-events-none', !show);
+        backToTopEl.classList.toggle('opacity-0', !show);
+        backToTopEl.classList.toggle('translate-y-4', !show);
+      }
+    };
+    toggleHeaderState();
+    window.addEventListener('scroll', toggleHeaderState, { passive: true });
+
+    // Form submission handling
+    const successClasses = ['text-brand-600', 'dark:text-brand-300'];
+    const errorClasses = ['text-red-600', 'dark:text-red-400'];
+    document.querySelectorAll('form[data-form]').forEach(form => {
+      const statusEl = form.querySelector('[data-form-status]');
+      const submitButton = form.querySelector('button[type="submit"]');
+      if (!statusEl) return;
+
+      form.addEventListener('submit', async event => {
+        event.preventDefault();
+        statusEl.classList.remove('hidden');
+        statusEl.textContent = 'Sending…';
+        statusEl.classList.remove(...errorClasses);
+        statusEl.classList.add(...successClasses);
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.setAttribute('aria-disabled', 'true');
+        }
+
+        try {
+          const formData = new FormData(form);
+          const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { Accept: 'application/json' },
+          });
+
+          if (response.ok) {
+            statusEl.textContent = 'Thanks! Your message is on its way.';
+            form.reset();
+          } else {
+            const data = await response.json().catch(() => null);
+            const message = data?.errors?.[0]?.message || data?.message || 'Something went wrong. Please email isaacinpursuit@gmail.com.';
+            statusEl.textContent = message;
+            statusEl.classList.remove(...successClasses);
+            statusEl.classList.add(...errorClasses);
+          }
+        } catch (error) {
+          statusEl.textContent = 'Something went wrong. Please email isaacinpursuit@gmail.com.';
+          statusEl.classList.remove(...successClasses);
+          statusEl.classList.add(...errorClasses);
+        } finally {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.removeAttribute('aria-disabled');
+          }
+        }
+      });
+    });
+
+    // Year stamp
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
