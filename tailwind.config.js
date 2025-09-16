@@ -3,7 +3,9 @@ module.exports = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
-    "./**/*.html",
+    "./projects/**/*.{html,js}",
+    "./content/**/*.{html,md,mdx}",
+    "./*.html",
   ],
   darkMode: "class",
   theme: {
