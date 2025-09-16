@@ -16,10 +16,6 @@ export default function Page() {
           <a href="#contact" className="inline-flex items-center rounded-md bg-[#0A2239] px-4 py-2 text-white hover:opacity-90">
             Connect
           </a>
-          {/* Secondary */}
-          <a href="/resume.pdf" className="inline-flex items-center rounded-md border px-4 py-2 text-[#0A2239] border-[#0A2239]/30 hover:bg-black/5 dark:hover:bg-white/5">
-            Resume
-          </a>
           <a href="/calendar" className="inline-flex items-center rounded-md border px-4 py-2 text-[#0A2239] border-[#0A2239]/30 hover:bg-black/5 dark:hover:bg-white/5">
             Book a Call
           </a>

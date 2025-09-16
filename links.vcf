@@ -1,6 +1,9 @@
 BEGIN:VCARD
 VERSION:3.0
 FN:Isaac Johnston
+TITLE:Founder & Operator, IIP Holdings
 EMAIL;TYPE=INTERNET;TYPE=WORK:isaacinpursuit@gmail.com
-URL:https://isaacinpursuit.github.io/
+URL;TYPE=WORK:https://isaacinpursuit.github.io/
+item1.URL;TYPE=LinkedIn:https://www.linkedin.com/in/isaacinpursuit/
+item1.X-ABLabel:LinkedIn
 END:VCARD
