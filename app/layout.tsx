@@ -1,6 +1,7 @@
 import "../styles/globals.css";
 import type { Metadata } from "next";
-import FractalDemo, { FractalToggleButton } from "../components/FractalDemo";
+import FractalDemo, { FractalModeButton, FractalToggleButton } from "../components/FractalDemo";
+import ThemeToggleButton from "../components/ThemeToggleButton";
 
 export const metadata: Metadata = {
   title: "Isaac Johnston",
@@ -20,9 +21,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               labelWhenOn="Hide fractal"
               title="Toggle fractal demo"
             />
-            <button id="theme-toggle" className="rounded-md border px-3 py-1 text-sm">
-              Theme
-            </button>
+            <FractalModeButton className="hidden sm:inline-flex" />
+            <ThemeToggleButton />
           </div>
         </FractalDemo>
 
