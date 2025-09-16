@@ -222,6 +222,24 @@
       outline: none;
     }
 
+    #settings-panel header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    #settings-panel header .panel-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    #settings-panel[data-collapsed="true"],
+    #explain-panel[data-collapsed="true"] {
+      display: none;
+    }
+
     #explain-toggle {
       display: flex;
       align-items: center;
@@ -245,10 +263,54 @@
       z-index: 8;
     }
 
+    #explain-panel header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.35rem;
+    }
+
     #explain-panel h3 {
-      margin: 0 0 0.35rem;
+      margin: 0;
       font-size: 1rem;
       font-weight: 600;
+    }
+
+    .panel-expand {
+      position: fixed;
+      border-radius: 0.75rem;
+      border: 1px solid var(--border);
+      background: rgba(8, 10, 18, 0.85);
+      color: inherit;
+      padding: 0.55rem 0.9rem;
+      font: inherit;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      box-shadow: 0 1rem 2.5rem var(--shadow);
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      z-index: 8;
+    }
+
+    .panel-expand:hover,
+    .panel-expand:focus-visible {
+      background: rgba(255, 255, 255, 0.18);
+      outline: none;
+    }
+
+    #settings-expand {
+      left: 1.25rem;
+      top: 1.25rem;
+    }
+
+    #explain-expand {
+      left: 1.25rem;
+      bottom: 1.25rem;
+    }
+
+    .panel-expand[hidden] {
+      display: none;
     }
 
     #explain-panel p {
@@ -282,6 +344,18 @@
         left: 50%;
         bottom: calc(1rem + 70px + 220px);
         transform: translateX(-50%);
+      }
+
+      #settings-expand {
+        left: 50%;
+        top: 1.5rem;
+        transform: translateX(-50%);
+      }
+
+      #explain-expand {
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: calc(1rem + 70px);
       }
     }
 
@@ -322,11 +396,14 @@
     <button id="download-btn" type="button" aria-label="Download current frame as PNG">Download PNG</button>
   </div>
 
-  <aside id="settings-panel" role="region" aria-label="Demo fine controls">
+  <aside id="settings-panel" role="region" aria-label="Demo fine controls" data-collapsed="false">
     <a id="back-home" href="/index.html">← Back to portfolio</a>
     <header>
       <h2 id="settings-title">Settings</h2>
-      <button id="reset-demo" type="button">Reset</button>
+      <div class="panel-actions">
+        <button id="reset-demo" type="button">Reset</button>
+        <button id="collapse-settings" type="button" aria-expanded="true" aria-controls="settings-panel">Hide controls</button>
+      </div>
     </header>
     <form id="settings-form" autocomplete="off"></form>
     <label id="explain-toggle">
@@ -334,11 +411,16 @@
       Explain the math
     </label>
   </aside>
+  <button id="settings-expand" class="panel-expand" type="button" aria-expanded="false" aria-controls="settings-panel" hidden>Show controls</button>
 
-  <section id="explain-panel" hidden>
-    <h3 id="explain-title"></h3>
+  <section id="explain-panel" hidden data-collapsed="false">
+    <header>
+      <h3 id="explain-title"></h3>
+      <button id="collapse-explain" type="button" aria-expanded="true" aria-controls="explain-panel">Hide explanation</button>
+    </header>
     <div id="explain-content"></div>
   </section>
+  <button id="explain-expand" class="panel-expand" type="button" aria-expanded="false" aria-controls="explain-panel" hidden>Show explanation</button>
 
   <noscript>This interactive gallery requires JavaScript to render the mathematical demos.</noscript>
   <script type="module" src="js/main.js"></script>

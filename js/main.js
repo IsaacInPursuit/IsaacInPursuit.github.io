@@ -51,10 +51,15 @@ const calmToggle = document.getElementById('calm-toggle');
 const fpsMeter = document.getElementById('fps-meter');
 const downloadBtn = document.getElementById('download-btn');
 const resetBtn = document.getElementById('reset-demo');
+const settingsPanel = document.getElementById('settings-panel');
 const settingsForm = document.getElementById('settings-form');
 const settingsTitle = document.getElementById('settings-title');
+const collapseSettingsBtn = document.getElementById('collapse-settings');
+const settingsExpandBtn = document.getElementById('settings-expand');
 const explainCheckbox = document.getElementById('explain-checkbox');
 const explainPanel = document.getElementById('explain-panel');
+const collapseExplainBtn = document.getElementById('collapse-explain');
+const explainExpandBtn = document.getElementById('explain-expand');
 const explainTitle = document.getElementById('explain-title');
 const explainContent = document.getElementById('explain-content');
 
@@ -63,6 +68,7 @@ const storageKeys = {
   calm: 'math-gallery:calm-mode',
   settings: 'math-gallery:settings',
   explain: 'math-gallery:explain',
+  layout: 'math-gallery:layout',
 };
 
 const state = {
@@ -71,6 +77,8 @@ const state = {
   isPlaying: true,
   calmMode: false,
   shouldExplain: false,
+  settingsCollapsed: false,
+  explainCollapsed: false,
   fpsCounter: createFPSCounter(),
   lastFrame: performance.now(),
   autoDrop: null,
@@ -85,6 +93,67 @@ let pointerDown = false;
 let pointerId = null;
 let rafHandle = null;
 
+function saveLayout() {
+  storeState(storageKeys.layout, {
+    settingsCollapsed: state.settingsCollapsed,
+    explainCollapsed: state.explainCollapsed,
+  });
+}
+
+function applySettingsCollapsed() {
+  if (!settingsPanel) return;
+  const collapsed = Boolean(state.settingsCollapsed);
+  settingsPanel.dataset.collapsed = collapsed ? 'true' : 'false';
+  settingsPanel.hidden = collapsed;
+  settingsPanel.setAttribute('aria-hidden', collapsed ? 'true' : 'false');
+  collapseSettingsBtn?.setAttribute('aria-expanded', (!collapsed).toString());
+  if (settingsExpandBtn) {
+    settingsExpandBtn.hidden = !collapsed;
+    settingsExpandBtn.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
+  }
+}
+
+function setSettingsCollapsed(value, { persist = true } = {}) {
+  state.settingsCollapsed = Boolean(value);
+  applySettingsCollapsed();
+  if (persist) {
+    saveLayout();
+  }
+}
+
+function applyExplainCollapsed() {
+  if (!explainPanel) return;
+  if (!state.shouldExplain) {
+    explainPanel.hidden = true;
+    explainPanel.dataset.collapsed = 'true';
+    explainPanel.setAttribute('aria-hidden', 'true');
+    collapseExplainBtn?.setAttribute('aria-expanded', 'false');
+    if (explainExpandBtn) {
+      explainExpandBtn.hidden = true;
+      explainExpandBtn.setAttribute('aria-expanded', 'false');
+    }
+    return;
+  }
+
+  const collapsed = Boolean(state.explainCollapsed);
+  explainPanel.hidden = collapsed;
+  explainPanel.dataset.collapsed = collapsed ? 'true' : 'false';
+  explainPanel.setAttribute('aria-hidden', collapsed ? 'true' : 'false');
+  collapseExplainBtn?.setAttribute('aria-expanded', (!collapsed).toString());
+  if (explainExpandBtn) {
+    explainExpandBtn.hidden = !collapsed;
+    explainExpandBtn.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
+  }
+}
+
+function setExplainCollapsed(value, { persist = true } = {}) {
+  state.explainCollapsed = Boolean(value);
+  applyExplainCollapsed();
+  if (persist) {
+    saveLayout();
+  }
+}
+
 function init() {
   demos.forEach((demo, index) => {
     const option = document.createElement('option');
@@ -97,10 +166,18 @@ function init() {
   const storedDemo = loadState(storageKeys.demo, demos[0].id);
   const storedCalm = loadState(storageKeys.calm, null);
   const storedExplain = loadState(storageKeys.explain, false);
+  const storedLayout = loadState(storageKeys.layout, {
+    settingsCollapsed: false,
+    explainCollapsed: false,
+  });
   state.calmMode = storedCalm !== null ? storedCalm : prefersReducedMotion() || state.mobile;
   calmToggle.checked = state.calmMode;
   state.shouldExplain = storedExplain;
+  state.settingsCollapsed = Boolean(storedLayout.settingsCollapsed);
+  state.explainCollapsed = Boolean(storedLayout.explainCollapsed);
   explainCheckbox.checked = state.shouldExplain;
+  applySettingsCollapsed();
+  applyExplainCollapsed();
 
   const defaultIndex = Math.max(0, demos.findIndex((demo) => demo.id === storedDemo));
   state.demoIndex = defaultIndex === -1 ? 0 : defaultIndex;
@@ -122,9 +199,30 @@ function init() {
     state.current?.instance?.reset?.();
     rebuildSettings();
   });
+  collapseSettingsBtn?.addEventListener('click', () => {
+    setSettingsCollapsed(true);
+  });
+  settingsExpandBtn?.addEventListener('click', () => {
+    setSettingsCollapsed(false);
+  });
   explainCheckbox.addEventListener('change', (event) => {
     state.shouldExplain = event.target.checked;
     storeState(storageKeys.explain, state.shouldExplain);
+    if (!state.shouldExplain) {
+      setExplainCollapsed(false);
+    }
+    updateExplainPanel();
+  });
+  collapseExplainBtn?.addEventListener('click', () => {
+    setExplainCollapsed(true);
+  });
+  explainExpandBtn?.addEventListener('click', () => {
+    if (!state.shouldExplain) {
+      state.shouldExplain = true;
+      explainCheckbox.checked = true;
+      storeState(storageKeys.explain, true);
+    }
+    setExplainCollapsed(false);
     updateExplainPanel();
   });
   demoSelect.addEventListener('change', (event) => {
@@ -374,10 +472,9 @@ function updateExplainPanel() {
   const descriptor = state.current?.descriptor;
   if (!descriptor) return;
   if (!state.shouldExplain) {
-    explainPanel.hidden = true;
+    applyExplainCollapsed();
     return;
   }
-  explainPanel.hidden = false;
   explainTitle.textContent = descriptor.name;
   const explanation = descriptor.explain ?? '';
   if (typeof explanation === 'string') {
@@ -387,6 +484,7 @@ function updateExplainPanel() {
   } else if (typeof explanation === 'function') {
     explainContent.innerHTML = explanation();
   }
+  applyExplainCollapsed();
 }
 
 function loop(now) {
