@@ -6,6 +6,11 @@
 
 html[data-theme="console"] #console-hero{ display:block; }
 
+#console-hero{
+  pointer-events:none;
+  z-index:64;
+}
+
 .iip-logo-3d{
   position:absolute; left:50%; top:40%;
   transform: translate(-50%,-50%);
