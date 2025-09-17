@@ -1,0 +1,40 @@
+/* CODEX: 3D logo layer for Console theme (add-only) */
+:root{
+  --console-bronze:#CD7F32;
+  --console-glow: rgba(205,127,50,0.45);
+}
+
+html[data-theme="console"] #console-hero{ display:block; }
+
+.iip-logo-3d{
+  position:absolute; left:50%; top:40%;
+  transform: translate(-50%,-50%);
+  width: min(60vw, 720px);
+  filter: drop-shadow(0 8px 32px rgba(0,0,0,.45));
+  perspective: 1200px;
+}
+
+.iip-logo-3d-svg{
+  display:block; width:100%; height:auto;
+  color: var(--console-bronze);
+  /* glassy edge look via multi-shadow glow */
+  filter:
+    drop-shadow(0 0 6px var(--console-glow))
+    drop-shadow(0 0 16px rgba(205,127,50,0.25));
+  opacity:.96;
+}
+
+/* Subtle neon piping shimmer over strokes */
+.iip-logo-3d-svg g{
+  stroke-linecap:round; stroke-linejoin:round;
+}
+
+/* Glitchy headline pulse (optional helper class you can add to your existing headline) */
+@keyframes glitchIn{
+  0%{opacity:0; transform:translateY(8px)}
+  25%{opacity:1; clip-path: inset(0 0 60% 0)}
+  50%{clip-path: inset(40% 0 0 0)}
+  75%{clip-path: inset(0 0 0 0); filter: hue-rotate(15deg) saturate(1.2)}
+  100%{filter:none; transform:none}
+}
+html[data-theme="console"] .headline--glitch{ animation: glitchIn .9s ease both; }

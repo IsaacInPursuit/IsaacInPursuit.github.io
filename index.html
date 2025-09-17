@@ -266,9 +266,35 @@
       box-shadow: 0 16px 38px rgba(8,145,178,.42);
     }
   </style>
+  <!-- CODEX: HEAD INJECT START -->
+  <link rel="stylesheet" href="/src/styles/logo-3d.css">
+  <script defer src="/src/utils/logo-3d.js"></script>
+  <!-- Particle engine is imported dynamically by theme switcher; no direct <script> tag needed -->
+  <!-- CODEX: HEAD INJECT END -->
+
 </head>
 <body class="relative min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-900 antialiased dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
   <a class="skip-link" href="#mainContent">Skip to main content</a>
+  <!-- CODEX: CONSOLE HERO OVERLAY (3D logo + particles) -->
+  <div id="console-hero" aria-hidden="true"
+       style="position:absolute; inset:0; pointer-events:none; display:none;">
+    <!-- Canvas behind the logo for particles -->
+    <canvas id="console-particles" width="0" height="0"
+            style="position:absolute; inset:0; width:100%; height:100%;"></canvas>
+
+    <!-- 3D Logo container (pointer-events none so it never blocks clicks) -->
+    <div class="iip-logo-3d" aria-hidden="true">
+      <!-- Simple inline SVG “IIP” outline; hollow and translucent -->
+      <svg class="iip-logo-3d-svg" viewBox="0 0 600 200" role="img" aria-label="IIP logo decorative">
+        <g fill="none" stroke="currentColor" stroke-width="12" opacity="0.9">
+          <path d="M80 30 L80 170" />
+          <path d="M180 30 L180 170 M180 30 L260 30 M180 170 L260 170" />
+          <path d="M320 30 L320 170 M320 30 L480 30 M320 170 L480 170 M480 30 L480 170" />
+        </g>
+      </svg>
+    </div>
+  </div>
+
   <div class="pointer-events-none absolute inset-0 overflow-hidden">
     <div class="floating absolute -top-36 right-12 h-72 w-72 rounded-full bg-brand-500/10 blur-3xl dark:bg-brand-500/20"></div>
     <div class="floating absolute bottom-0 left-[-6rem] h-64 w-64 rounded-full bg-brand-500/5 blur-3xl dark:bg-brand-500/15"></div>
@@ -289,6 +315,10 @@
         <button data-fractal-toggle type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200" title="Launch the interactive fractal demo" data-state="inactive" aria-pressed="false">
           <span aria-hidden="true">✨</span>
           <span data-fractal-toggle-label>Launch fractal zoom</span>
+        </button>
+        <button id="consoleThemeToggle" type="button" data-state="inactive" aria-pressed="false" class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:border-brand-400 dark:hover:text-brand-200" title="Toggle console theme overlay">
+          <span aria-hidden="true">🖥️</span>
+          <span data-console-toggle-label>Console</span>
         </button>
       </div>
     </div>
@@ -806,6 +836,108 @@
 
     // Year stamp
     document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+  <script>
+    (function(){
+      const root = document.documentElement;
+      const button = document.getElementById('consoleThemeToggle');
+      if(!button) return;
+
+      const storageKey = 'consoleTheme';
+      let storage = null;
+      try {
+        const testKey = '__console_theme_test__';
+        localStorage.setItem(testKey, '1');
+        localStorage.removeItem(testKey);
+        storage = localStorage;
+      } catch (error) {
+        storage = null;
+      }
+
+      const setButtonState = active => {
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        button.dataset.state = active ? 'active' : 'inactive';
+        const label = button.querySelector('[data-console-toggle-label]');
+        if(label){
+          label.textContent = active ? 'Console on' : 'Console';
+        }
+      };
+
+      const apply = active => {
+        if(active){
+          root.setAttribute('data-theme', 'console');
+          if(storage){
+            storage.setItem(storageKey, 'console');
+          }
+        } else {
+          root.removeAttribute('data-theme');
+          if(storage){
+            storage.removeItem(storageKey);
+          }
+        }
+        setButtonState(active);
+      };
+
+      const storedActive = storage && storage.getItem(storageKey) === 'console';
+      if(storedActive){
+        apply(true);
+      } else {
+        setButtonState(root.getAttribute('data-theme') === 'console');
+      }
+
+      button.addEventListener('click', () => {
+        const next = button.getAttribute('aria-pressed') !== 'true';
+        apply(next);
+      });
+
+      const observer = new MutationObserver(() => {
+        const isActive = root.getAttribute('data-theme') === 'console';
+        setButtonState(isActive);
+        if(storage){
+          if(isActive){
+            storage.setItem(storageKey, 'console');
+          } else {
+            storage.removeItem(storageKey);
+          }
+        }
+      });
+      observer.observe(root, { attributes:true, attributeFilter:['data-theme'] });
+    })();
+  </script>
+  <!-- CODEX: THEME HOOK (append before </body>) -->
+  <script>
+    (function(){
+      const root = document.documentElement;
+      let engine = null;
+
+      async function enableParticles(){
+        const canvas = document.getElementById('console-particles');
+        if(!canvas) return;
+        const mod = await import('/src/utils/particles.js');
+        engine = mod.startConsoleParticles(canvas);
+        const onResize = () => engine && engine.resize && engine.resize();
+        addEventListener('resize', onResize, { passive:true });
+        // Store cleanup
+        canvas._cleanup = () => removeEventListener('resize', onResize);
+      }
+
+      function disableParticles(){
+        const canvas = document.getElementById('console-particles');
+        if(engine && engine.stop) engine.stop();
+        engine = null;
+        if(canvas && canvas._cleanup){ canvas._cleanup(); canvas._cleanup = null; }
+        const ctx = canvas && canvas.getContext && canvas.getContext('2d');
+        if(ctx){ ctx.clearRect(0,0,canvas.width,canvas.height); }
+      }
+
+      const mo = new MutationObserver(()=>{
+        const active = root.getAttribute('data-theme') === 'console';
+        if(active){ enableParticles(); } else { disableParticles(); }
+      });
+      mo.observe(root, { attributes:true, attributeFilter:['data-theme'] });
+
+      if(root.getAttribute('data-theme') === 'console'){ enableParticles(); }
+    })();
   </script>
 </body>
 </html>
