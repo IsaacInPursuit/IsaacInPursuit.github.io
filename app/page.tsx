@@ -1,7 +1,33 @@
+import Link from "next/link";
+
 import ContactForm from "../components/ContactForm";
 
+export const revalidate = 86_400;
+
+export const projects = [
+  {
+    title: "Cali Baking MVP",
+    description: "Extending a beloved bakery online with drops and delivery experiments.",
+    href: "/projects/cali-baking.html",
+  },
+  {
+    title: "Farm Compliance MVP",
+    description: "Mobile onboarding and audit tooling that keeps growers inspection ready.",
+    href: "/projects/farm-compliance.html",
+  },
+  {
+    title: "IIP Private Holdings, LLC",
+    description: "A holding company pursuing small business acquisitions and shared services.",
+    href: "/projects/iip-private-holdings.html",
+  },
+  {
+    title: "UNCC Student Network",
+    description: "A talent marketplace linking students with operators, internships, and civic work.",
+    href: "/projects/uncc-student-network.html",
+  },
+];
+
 export default function Page() {
-  const year = new Date().getFullYear();
   return (
     <main className="mx-auto max-w-3xl px-4">
       {/* HEADER AREA WITH YOUR NAME AND BUTTONS */}
@@ -16,7 +42,10 @@ export default function Page() {
           <a href="#contact" className="inline-flex items-center rounded-md bg-[#0A2239] px-4 py-2 text-white hover:opacity-90">
             Connect
           </a>
-          <a href="/calendar" className="inline-flex items-center rounded-md border px-4 py-2 text-[#0A2239] border-[#0A2239]/30 hover:bg-black/5 dark:hover:bg-white/5">
+          <a
+            href="https://calendar.app.google/V6WfbjRRDxbFr6X69"
+            className="inline-flex items-center rounded-md border border-[#0A2239]/30 px-4 py-2 text-[#0A2239] hover:bg-black/5 dark:hover:bg-white/5"
+          >
             Book a Call
           </a>
         </div>
@@ -74,7 +103,36 @@ export default function Page() {
       {/* PROJECTS */}
       <section className="mt-10">
         <h2 className="text-2xl font-semibold">Projects</h2>
-        <p className="mt-2">Add your project cards or links here.</p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {projects.map((project) => (
+            <Link
+              key={project.href}
+              href={project.href}
+              prefetch={false}
+              className="group block rounded-lg border border-neutral-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#0A2239] hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-200"
+            >
+              <h3 className="text-lg font-semibold text-[#0A2239] transition group-hover:text-[#D72638] dark:text-neutral-100 dark:group-hover:text-[#D72638]">
+                {project.title}
+              </h3>
+              <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{project.description}</p>
+              <span className="mt-3 inline-flex items-center text-sm font-medium text-[#0A2239] transition group-hover:text-[#D72638] dark:text-neutral-200 dark:group-hover:text-[#D72638]">
+                View project
+                <svg
+                  aria-hidden="true"
+                  className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12h14m0 0l-6-6m6 6l-6 6" />
+                </svg>
+              </span>
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/* SKILLS UNDER PROJECTS */}
@@ -125,7 +183,7 @@ export default function Page() {
       </section>
 
       <footer className="my-16 text-center text-sm text-neutral-500">
-        © {year} Isaac Johnston
+        © {new Date().getFullYear()} Isaac Johnston
       </footer>
     </main>
   );
