@@ -2,6 +2,9 @@
   const ESCAPE_RADIUS = 4;
   const LOG2 = Math.log(2);
   const TAU = Math.PI * 2;
+  const precision = global.FractalPrecision || {};
+  const DoubleDouble = precision.DoubleDouble || null;
+  const HIGH_PRECISION_PIXEL_THRESHOLD = DoubleDouble?.SWITCH_PIXEL_THRESHOLD || 2e-14;
 
   function defaultDrawBackdrop(ctx, width, height) {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -39,8 +42,32 @@
     return Math.max(8, Math.min(120, 6 + Math.floor(42 * Math.pow(1 - Math.min(1, radial * 2), 1.5))));
   }
 
-  function defaultMaxIterations(zoom) {
-    return Math.max(80, Math.floor(110 + Math.log(zoom + 1) * 38));
+  function defaultMaxIterations(zoom, state = {}) {
+    const safeZoom = Math.max(1, Number.isFinite(zoom) ? zoom : 1);
+    const logZoom = Math.log10(safeZoom);
+    const baseline = 120 + logZoom * 45;
+    const superLinear = Math.pow(Math.max(0, logZoom - 0.7), 3.1) * 75;
+
+    let densityBoost = 0;
+    const spanHint = state?.minPixelSpan;
+    let minPixelSpan = spanHint;
+    if (!Number.isFinite(minPixelSpan) || minPixelSpan == null || minPixelSpan <= 0) {
+      const px = Math.abs(state?.pixelSpanX ?? 0);
+      const py = Math.abs(state?.pixelSpanY ?? 0);
+      const fallback = Math.min(px || Infinity, py || Infinity);
+      if (Number.isFinite(fallback) && fallback > 0) {
+        minPixelSpan = fallback;
+      }
+    }
+    if (Number.isFinite(minPixelSpan) && minPixelSpan > 0) {
+      const density = Math.log10(1 / minPixelSpan);
+      if (density > 6) {
+        densityBoost = Math.pow(density - 6, 2.2) * 20;
+      }
+    }
+
+    const total = baseline + superLinear + densityBoost;
+    return Math.max(120, Math.min(60000, Math.floor(total)));
   }
 
   function defaultTileBatch(width, height) {
@@ -177,63 +204,155 @@
       const spanY = spanX * (canvasHeight / Math.max(1, canvasWidth));
       const startX = displayCenter.x - spanX / 2;
       const startY = displayCenter.y - spanY / 2;
-      const iterationLimit = maxIterations(displayZoom, getState());
+      const pixelSpanX = spanX / Math.max(1, canvasWidth);
+      const pixelSpanY = spanY / Math.max(1, canvasHeight);
+      const minPixelSpan = Math.min(Math.abs(pixelSpanX), Math.abs(pixelSpanY));
+      const useHighPrecision = Boolean(
+        DoubleDouble &&
+        Number.isFinite(minPixelSpan) &&
+        minPixelSpan > 0 &&
+        minPixelSpan < HIGH_PRECISION_PIXEL_THRESHOLD
+      );
+      const state = getState();
+      state.spanX = spanX;
+      state.spanY = spanY;
+      state.pixelSpanX = pixelSpanX;
+      state.pixelSpanY = pixelSpanY;
+      state.minPixelSpan = minPixelSpan;
+      state.highPrecision = useHighPrecision;
+      const iterationLimit = maxIterations(displayZoom, state);
       const drift = palettePhase + paletteSeed;
       const brightnessBoost = Math.min(1.6, 1 + Math.log(displayZoom + 1) * 0.08);
       let rendered = 0;
 
-      for (let batch = 0; batch < batchCount && tiles.length; batch++) {
-        const tile = tiles.pop();
-        const tileWidth = Math.min(tileSize, canvasWidth - tile.x);
-        const tileHeight = Math.min(tileSize, canvasHeight - tile.y);
-        const imageData = bufferCtx.createImageData(tileWidth, tileHeight);
-        const data = imageData.data;
-        let offset = 0;
+      if (useHighPrecision) {
+        const startXDD = DoubleDouble.fromNumber(startX);
+        const startYDD = DoubleDouble.fromNumber(startY);
+        const stepXDD = DoubleDouble.fromNumber(pixelSpanX);
+        const stepYDD = DoubleDouble.fromNumber(pixelSpanY);
 
-        for (let ty = 0; ty < tileHeight; ty++) {
-          const pixelY = tile.y + ty;
-          const cy = startY + (pixelY / canvasHeight) * spanY;
-          for (let tx = 0; tx < tileWidth; tx++) {
-            const pixelX = tile.x + tx;
-            const cx = startX + (pixelX / canvasWidth) * spanX;
+        for (let batch = 0; batch < batchCount && tiles.length; batch++) {
+          const tile = tiles.pop();
+          const tileWidth = Math.min(tileSize, canvasWidth - tile.x);
+          const tileHeight = Math.min(tileSize, canvasHeight - tile.y);
+          const imageData = bufferCtx.createImageData(tileWidth, tileHeight);
+          const data = imageData.data;
+          let offset = 0;
 
-            let zx = 0;
-            let zy = 0;
-            let iter = 0;
-            let zx2 = 0;
-            let zy2 = 0;
+          const tileXOffsetDD = DoubleDouble.fromNumber(tile.x);
+          const tileYOffsetDD = DoubleDouble.fromNumber(tile.y);
+          const tileStartXDD = DoubleDouble.add(startXDD, DoubleDouble.mul(stepXDD, tileXOffsetDD));
+          let rowStartYDD = DoubleDouble.add(startYDD, DoubleDouble.mul(stepYDD, tileYOffsetDD));
 
-            while (zx2 + zy2 <= ESCAPE_RADIUS && iter < iterationLimit) {
-              zy = 2 * zx * zy + cy;
-              zx = zx2 - zy2 + cx;
-              zx2 = zx * zx;
-              zy2 = zy * zy;
-              iter++;
-            }
+          for (let ty = 0; ty < tileHeight; ty++) {
+            const cyDD = ty === 0 ? rowStartYDD : (rowStartYDD = DoubleDouble.add(rowStartYDD, stepYDD));
+            const cyValue = DoubleDouble.toNumber(cyDD);
+            let cxRowDD = tileStartXDD;
 
-            let r, g, b;
-            if (iter >= iterationLimit) {
-              const shade = interiorShade(cx, cy, displayCenter, spanX, spanY);
-              r = g = b = shade;
-            } else {
-              const mag = zx2 + zy2;
-              let smooth = iter;
-              if (mag > 1) {
-                smooth = iter + 1 - Math.log(Math.log(mag)) / LOG2;
+            for (let tx = 0; tx < tileWidth; tx++) {
+              const cxDD = tx === 0 ? cxRowDD : (cxRowDD = DoubleDouble.add(cxRowDD, stepXDD));
+              const cxValue = DoubleDouble.toNumber(cxDD);
+
+              let zx = DoubleDouble.zero();
+              let zy = DoubleDouble.zero();
+              let zx2 = DoubleDouble.zero();
+              let zy2 = DoubleDouble.zero();
+              let iter = 0;
+
+              while (iter < iterationLimit) {
+                const magCheck = DoubleDouble.toNumber(DoubleDouble.add(zx2, zy2));
+                if (magCheck > ESCAPE_RADIUS) {
+                  break;
+                }
+                const zxzy = DoubleDouble.mul(zx, zy);
+                const nextZy = DoubleDouble.add(DoubleDouble.mulNumber(zxzy, 2), cyDD);
+                const nextZx = DoubleDouble.add(DoubleDouble.sub(zx2, zy2), cxDD);
+                zx = nextZx;
+                zy = nextZy;
+                zx2 = DoubleDouble.mul(zx, zx);
+                zy2 = DoubleDouble.mul(zy, zy);
+                iter++;
               }
-              const t = Math.max(0, Math.min(1, smooth / iterationLimit));
-              [r, g, b] = samplePalette(t, drift, brightnessBoost, getState());
+
+              const mag = DoubleDouble.toNumber(DoubleDouble.add(zx2, zy2));
+
+              let r, g, b;
+              if (iter >= iterationLimit) {
+                const shade = interiorShade(cxValue, cyValue, displayCenter, spanX, spanY);
+                r = g = b = shade;
+              } else {
+                let smooth = iter;
+                if (mag > 1) {
+                  smooth = iter + 1 - Math.log(Math.log(mag)) / LOG2;
+                }
+                const t = Math.max(0, Math.min(1, smooth / iterationLimit));
+                [r, g, b] = samplePalette(t, drift, brightnessBoost, state);
+              }
+
+              data[offset++] = r;
+              data[offset++] = g;
+              data[offset++] = b;
+              data[offset++] = 255;
             }
-
-            data[offset++] = r;
-            data[offset++] = g;
-            data[offset++] = b;
-            data[offset++] = 255;
           }
-        }
 
-        bufferCtx.putImageData(imageData, tile.x, tile.y);
-        rendered++;
+          bufferCtx.putImageData(imageData, tile.x, tile.y);
+          rendered++;
+        }
+      } else {
+        for (let batch = 0; batch < batchCount && tiles.length; batch++) {
+          const tile = tiles.pop();
+          const tileWidth = Math.min(tileSize, canvasWidth - tile.x);
+          const tileHeight = Math.min(tileSize, canvasHeight - tile.y);
+          const imageData = bufferCtx.createImageData(tileWidth, tileHeight);
+          const data = imageData.data;
+          let offset = 0;
+
+          for (let ty = 0; ty < tileHeight; ty++) {
+            const pixelY = tile.y + ty;
+            const cy = startY + (pixelY / canvasHeight) * spanY;
+            for (let tx = 0; tx < tileWidth; tx++) {
+              const pixelX = tile.x + tx;
+              const cx = startX + (pixelX / canvasWidth) * spanX;
+
+              let zx = 0;
+              let zy = 0;
+              let iter = 0;
+              let zx2 = 0;
+              let zy2 = 0;
+
+              while (zx2 + zy2 <= ESCAPE_RADIUS && iter < iterationLimit) {
+                zy = 2 * zx * zy + cy;
+                zx = zx2 - zy2 + cx;
+                zx2 = zx * zx;
+                zy2 = zy * zy;
+                iter++;
+              }
+
+              let r, g, b;
+              if (iter >= iterationLimit) {
+                const shade = interiorShade(cx, cy, displayCenter, spanX, spanY);
+                r = g = b = shade;
+              } else {
+                const mag = zx2 + zy2;
+                let smooth = iter;
+                if (mag > 1) {
+                  smooth = iter + 1 - Math.log(Math.log(mag)) / LOG2;
+                }
+                const t = Math.max(0, Math.min(1, smooth / iterationLimit));
+                [r, g, b] = samplePalette(t, drift, brightnessBoost, state);
+              }
+
+              data[offset++] = r;
+              data[offset++] = g;
+              data[offset++] = b;
+              data[offset++] = 255;
+            }
+          }
+
+          bufferCtx.putImageData(imageData, tile.x, tile.y);
+          rendered++;
+        }
       }
 
       tilesDrawnLastFrame = rendered;
