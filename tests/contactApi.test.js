@@ -82,4 +82,67 @@ describe('POST /api/contact integration', () => {
 
     nowSpy.mockRestore();
   });
+
+  test('cleans up expired rate limit entries across many identifiers', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({ ok: true });
+    global.fetch = fetchMock;
+
+    const startTime = 1_700_000_100_000;
+    let currentTime = startTime;
+    const nowSpy = jest.spyOn(Date, 'now').mockImplementation(() => currentTime);
+
+    const { POST, __test__ } = require('../app/api/contact/route');
+
+    const validPayload = {
+      name: 'Isaac',
+      email: 'isaac@example.com',
+      message: 'Testing cleanup behaviour.',
+    };
+
+    const identifiers = Array.from({ length: 20 }, (_, index) => `198.51.100.${index + 1}`);
+
+    for (const ip of identifiers) {
+      const response = await POST(createRequest(validPayload, { 'x-forwarded-for': ip }));
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({ ok: true });
+    }
+
+    expect(__test__.rateLimitStore.size).toBe(identifiers.length);
+
+    currentTime = startTime + 60_000 + 1;
+
+    const reusedIdentifier = identifiers[0];
+    const responseAfterWindow = await POST(
+      createRequest(validPayload, { 'x-forwarded-for': reusedIdentifier }),
+    );
+
+    expect(responseAfterWindow.status).toBe(200);
+    await expect(responseAfterWindow.json()).resolves.toEqual({ ok: true });
+
+    expect(__test__.rateLimitStore.size).toBe(1);
+    expect(__test__.rateLimitStore.get(reusedIdentifier)?.count).toBe(1);
+
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const response = await POST(createRequest(validPayload, { 'x-forwarded-for': reusedIdentifier }));
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({ ok: true });
+    }
+
+    expect(__test__.rateLimitStore.get(reusedIdentifier)?.count).toBe(5);
+
+    const limitedResponse = await POST(createRequest(validPayload, { 'x-forwarded-for': reusedIdentifier }));
+
+    expect(limitedResponse.status).toBe(429);
+    expect(limitedResponse.headers.get('Retry-After')).toBe('60');
+    await expect(limitedResponse.json()).resolves.toEqual({
+      error: 'Too many requests. Please wait before submitting again.',
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(identifiers.length + 5);
+    expect(__test__.rateLimitStore.size).toBe(1);
+    expect(__test__.rateLimitStore.has(reusedIdentifier)).toBe(true);
+
+    __test__.rateLimitStore.clear();
+    nowSpy.mockRestore();
+  });
 });

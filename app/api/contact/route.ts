@@ -18,6 +18,14 @@ type RateLimitEntry = {
 
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
+function pruneExpiredEntries(now: number): void {
+  for (const [key, entry] of rateLimitStore.entries()) {
+    if (entry.expiresAt <= now) {
+      rateLimitStore.delete(key);
+    }
+  }
+}
+
 function sanitizeField(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -41,9 +49,17 @@ function getClientIdentifier(request: Request): string {
 
 function applyRateLimit(identifier: string): { limited: boolean; retryAfterSeconds: number } {
   const now = Date.now();
+
+  pruneExpiredEntries(now);
+
   const existing = rateLimitStore.get(identifier);
 
-  if (!existing || existing.expiresAt <= now) {
+  if (!existing) {
+    rateLimitStore.set(identifier, { count: 1, expiresAt: now + RATE_LIMIT_WINDOW_MS });
+    return { limited: false, retryAfterSeconds: Math.ceil(RATE_LIMIT_WINDOW_MS / 1000) };
+  }
+
+  if (existing.expiresAt <= now) {
     rateLimitStore.set(identifier, { count: 1, expiresAt: now + RATE_LIMIT_WINDOW_MS });
     return { limited: false, retryAfterSeconds: Math.ceil(RATE_LIMIT_WINDOW_MS / 1000) };
   }
@@ -138,3 +154,9 @@ export async function POST(request: Request) {
 export function GET() {
   return NextResponse.json({ error: "Method not allowed." }, { status: 405 });
 }
+
+export const __test__ = {
+  rateLimitStore,
+  applyRateLimit,
+  pruneExpiredEntries,
+};
