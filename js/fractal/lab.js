@@ -47,7 +47,7 @@
 
     let autopilot = true;
     let activeHighlight = null;
-    let holdTimer = 0;
+    let autopilotPlan = null;
     let lastPinchDistance = null;
     const pointerSnapshots = new Map();
 
@@ -55,6 +55,22 @@
     if (reduceMotionMedia?.matches) {
       autopilot = false;
     }
+
+    const MIN_RENDERER_LOG_ZOOM = Math.log(0.45);
+    const AUTOPILOT_LOG_DRIFT = 0.17;
+    const AUTOPILOT_LINGER_AT_DEPTH = 1.8;
+    const AUTOPILOT_RESET_PAUSE = 1.1;
+    const AUTOPILOT_TILE_SETTLE_THRESHOLD = 8;
+    const AUTOPILOT_APPROACH_DISTANCE_SCALE = 0.0012;
+    const AUTOPILOT_APPROACH_ZOOM_EPS = 0.05;
+    const AUTOPILOT_LINGER_ZOOM_EPS = 0.12;
+    const AUTOPILOT_ASCEND_ZOOM_EPS = 0.1;
+    const AUTOPILOT_OFFSET_FACTORS = {
+      dive: 0.032,
+      linger: 0.038,
+      ascend: 0.026,
+      reset: 0.014,
+    };
 
     function updateAutopilotButton() {
       if (!autopilotBtn) return;
@@ -81,10 +97,13 @@
       autopilot = next;
       updateAutopilotButton();
       renderer.setSmoothingRate(autopilot ? 2.4 : 6);
-      if (autopilot && !activeHighlight) {
-        jumpToHighlight(chooseHighlight(), { announce: false });
-      }
-      if (!autopilot) {
+      if (autopilot) {
+        if (activeHighlight) {
+          configureAutopilotDrift(activeHighlight);
+        } else {
+          jumpToHighlight(chooseHighlight(), { announce: false });
+        }
+      } else {
         renderer.snapToTarget();
       }
     }
@@ -95,9 +114,29 @@
       }
     }
 
+    function configureAutopilotDrift(highlight, { immediate = false } = {}) {
+      if (!highlight) {
+        autopilotPlan = null;
+        return;
+      }
+      const baseLogZoom = Math.log(Math.max(1e-6, highlight.zoom));
+      const minLogZoom = Math.max(MIN_RENDERER_LOG_ZOOM, baseLogZoom - 0.55);
+      const maxLogZoom = Math.max(minLogZoom + 0.9, baseLogZoom + 2.3);
+      autopilotPlan = {
+        highlight,
+        baseLogZoom,
+        minLogZoom,
+        maxLogZoom,
+        phase: immediate ? 'dive' : 'approach',
+        holdTimer: 0,
+        offsetSeed: Math.random() * Math.PI * 2,
+      };
+    }
+
     function jumpToHighlight(highlight, { announce = true } = {}) {
       if (!highlight) return;
       activeHighlight = highlight;
+      configureAutopilotDrift(highlight);
       renderer.setTargetState({ center: { x: highlight.x, y: highlight.y }, zoom: highlight.zoom });
       renderer.invalidate();
       if (!autopilot) {
@@ -110,6 +149,7 @@
 
     function resetView() {
       activeHighlight = null;
+      configureAutopilotDrift(null);
       renderer.resetView();
     }
 
@@ -180,32 +220,116 @@
       }
     }
 
-    renderer.setController((engine) => {
+    renderer.setController((engine, deltaSeconds = 0, now = 0) => {
       engine.setSmoothingRate(autopilot ? 2.4 : 6);
+
+      if (!autopilot || !autopilotPlan?.highlight) return;
+
+      if (autopilotPlan.highlight !== activeHighlight) {
+        configureAutopilotDrift(activeHighlight || autopilotPlan.highlight);
+      }
+
+      const plan = autopilotPlan;
+      if (!plan || !plan.highlight) return;
+
+      const highlight = plan.highlight;
+      const state = engine.getState();
+      const baseSpan = state.baseSpan || 3.3;
+      const targetZoom = Math.max(1e-6, state.targetZoom || 1);
+      const spanX = baseSpan / targetZoom;
+      const aspectRatio = state.cssWidth > 0 ? state.cssHeight / Math.max(1, state.cssWidth) : 1;
+      const spanY = spanX * aspectRatio;
+      const tilesRemaining = state.tilesRemaining ?? 0;
+      const displayCenter = state.displayCenter || { x: highlight.x, y: highlight.y };
+      const displayLogZoom = state.displayLogZoom ?? plan.baseLogZoom;
+      const targetLogZoom = state.targetLogZoom ?? plan.baseLogZoom;
+      const nowSeconds = now * 0.001;
+
+      if (plan.phase === 'approach') {
+        engine.setTargetState({ center: { x: highlight.x, y: highlight.y }, logZoom: plan.baseLogZoom });
+        const distance = Math.hypot(displayCenter.x - highlight.x, displayCenter.y - highlight.y);
+        const zoomDiff = Math.abs(displayLogZoom - plan.baseLogZoom);
+        const spanTolerance = Math.max(spanX, spanY) * AUTOPILOT_APPROACH_DISTANCE_SCALE + 5e-8;
+        if (
+          distance < spanTolerance &&
+          zoomDiff < AUTOPILOT_APPROACH_ZOOM_EPS &&
+          tilesRemaining < AUTOPILOT_TILE_SETTLE_THRESHOLD
+        ) {
+          plan.phase = 'dive';
+          plan.holdTimer = 0;
+        }
+        return;
+      }
+
+      const baseRadius = Number.isFinite(spanX) && Number.isFinite(spanY) ? Math.min(spanX, spanY) : 0;
+      const factor = AUTOPILOT_OFFSET_FACTORS[plan.phase] ?? AUTOPILOT_OFFSET_FACTORS.ascend;
+      const driftRadius = baseRadius * factor;
+      const offsetX = Math.cos(nowSeconds * 0.17 + plan.offsetSeed) * driftRadius;
+      const offsetY = Math.sin(nowSeconds * 0.21 + plan.offsetSeed * 0.65) * driftRadius;
+      const centerTarget = { x: highlight.x + offsetX, y: highlight.y + offsetY };
+
+      if (plan.phase === 'dive') {
+        engine.setTargetState({ center: centerTarget });
+        const remaining = plan.maxLogZoom - targetLogZoom;
+        const step = Math.max(0, Math.min(remaining, AUTOPILOT_LOG_DRIFT * deltaSeconds));
+        if (step > 0) {
+          engine.nudgeTargetLogZoom(step);
+        } else {
+          engine.setTargetState({ logZoom: plan.maxLogZoom });
+        }
+        const nextTargetLog = targetLogZoom + step;
+        const viewClose = Math.abs(displayLogZoom - plan.maxLogZoom) < AUTOPILOT_LINGER_ZOOM_EPS;
+        if (nextTargetLog >= plan.maxLogZoom - 0.01 && viewClose && tilesRemaining < AUTOPILOT_TILE_SETTLE_THRESHOLD) {
+          plan.phase = 'linger';
+          plan.holdTimer = 0;
+        }
+        return;
+      }
+
+      if (plan.phase === 'linger') {
+        engine.setTargetState({ center: centerTarget, logZoom: plan.maxLogZoom });
+        plan.holdTimer += deltaSeconds;
+        if (plan.holdTimer >= AUTOPILOT_LINGER_AT_DEPTH && tilesRemaining < AUTOPILOT_TILE_SETTLE_THRESHOLD) {
+          plan.phase = 'ascend';
+          plan.holdTimer = 0;
+        }
+        return;
+      }
+
+      if (plan.phase === 'ascend') {
+        engine.setTargetState({ center: centerTarget });
+        const remaining = targetLogZoom - plan.minLogZoom;
+        const step = Math.max(0, Math.min(remaining, AUTOPILOT_LOG_DRIFT * deltaSeconds));
+        if (step > 0) {
+          engine.nudgeTargetLogZoom(-step);
+        } else {
+          engine.setTargetState({ logZoom: plan.minLogZoom });
+        }
+        const nextTargetLog = targetLogZoom - step;
+        const viewClose = Math.abs(displayLogZoom - plan.minLogZoom) < AUTOPILOT_ASCEND_ZOOM_EPS;
+        if (nextTargetLog <= plan.minLogZoom + 0.01 && viewClose && tilesRemaining < AUTOPILOT_TILE_SETTLE_THRESHOLD) {
+          plan.phase = 'reset';
+          plan.holdTimer = 0;
+        }
+        return;
+      }
+
+      if (plan.phase === 'reset') {
+        engine.setTargetState({ center: centerTarget, logZoom: plan.minLogZoom });
+        plan.holdTimer += deltaSeconds;
+        if (plan.holdTimer >= AUTOPILOT_RESET_PAUSE && tilesRemaining < AUTOPILOT_TILE_SETTLE_THRESHOLD) {
+          const nextHighlight = chooseHighlight(highlight);
+          plan.holdTimer = 0;
+          if (autopilot && nextHighlight && nextHighlight !== highlight) {
+            jumpToHighlight(nextHighlight);
+          }
+        }
+        return;
+      }
     });
 
     renderer.setStateListener((state) => {
       updateStatus(state);
-      if (autopilot && activeHighlight) {
-        if (state.tilesRemaining > 0 || state.tilesDrawnLastFrame > 0) {
-          holdTimer = 0;
-        } else {
-          const distance = Math.hypot(
-            state.targetCenter.x - state.displayCenter.x,
-            state.targetCenter.y - state.displayCenter.y
-          );
-          const zoomDiff = Math.abs(state.targetLogZoom - state.displayLogZoom);
-          if (distance < 5e-7 && zoomDiff < 0.006) {
-            holdTimer += state.deltaSeconds;
-            if (holdTimer > 9) {
-              holdTimer = 0;
-              jumpToHighlight(chooseHighlight(activeHighlight));
-            }
-          } else {
-            holdTimer = 0;
-          }
-        }
-      }
     });
 
     function resize() {

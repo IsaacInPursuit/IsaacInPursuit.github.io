@@ -127,6 +127,17 @@
     let presentDirty = false;
     let hasRenderedTiles = false;
     let tilesDrawnLastFrame = 0;
+    let totalTilesForFrame = 0;
+    let tilesRenderedSinceBackdrop = 0;
+    let frameStartTime = 0;
+    const rawPresentFraction = Number(options.minPresentFraction);
+    const minPresentFraction = clamp(
+      Number.isFinite(rawPresentFraction) ? rawPresentFraction : 0.28,
+      0,
+      1
+    );
+    const minPresentTiles = Math.max(1, Math.floor(options.minPresentTiles ?? 24));
+    const maxPresentDelay = Math.max(0, Number(options.maxPresentDelay ?? 180));
 
     const targetCenter = { x: baseCenter.x, y: baseCenter.y };
     let targetLogZoom = Math.log(Math.max(minZoom, baseZoom));
@@ -185,6 +196,8 @@
       hasRenderedTiles = false;
       presentDirty = false;
       tilesDrawnLastFrame = 0;
+      totalTilesForFrame = tiles.length;
+      tilesRenderedSinceBackdrop = 0;
     }
 
     function drawBackdropInternal() {
@@ -193,6 +206,8 @@
       needsBackdrop = false;
       hasRenderedTiles = false;
       presentDirty = false;
+      tilesRenderedSinceBackdrop = 0;
+      totalTilesForFrame = tiles.length;
     }
 
     function renderTiles(batchCount) {
@@ -359,11 +374,25 @@
       if (rendered > 0) {
         hasRenderedTiles = true;
         presentDirty = true;
+        tilesRenderedSinceBackdrop += rendered;
       }
     }
 
-    function presentIfNeeded() {
-      if (!presentDirty || !hasRenderedTiles) return;
+    function shouldPresent(now) {
+      if (!hasRenderedTiles) return false;
+      if (!presentDirty) return false;
+      if (tiles.length === 0) return true;
+      if (totalTilesForFrame <= 0) return true;
+      if (tilesRenderedSinceBackdrop >= totalTilesForFrame) return true;
+      const fraction = tilesRenderedSinceBackdrop / totalTilesForFrame;
+      if (fraction >= minPresentFraction) return true;
+      if (tilesRenderedSinceBackdrop >= Math.min(totalTilesForFrame, minPresentTiles)) return true;
+      if (frameStartTime && now != null && now - frameStartTime >= maxPresentDelay) return true;
+      return false;
+    }
+
+    function presentIfNeeded(now) {
+      if (!shouldPresent(now)) return;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.drawImage(buffer, 0, 0);
       presentDirty = false;
@@ -405,6 +434,7 @@
       }
 
       if (needsBackdrop) {
+        frameStartTime = current;
         drawBackdropInternal();
       }
 
@@ -415,7 +445,7 @@
         tilesDrawnLastFrame = 0;
       }
 
-      presentIfNeeded();
+      presentIfNeeded(current);
 
       const driftSpeed = reduceMotion ? 0.12 : 0.6;
       const zoomInfluence = reduceMotion ? 0.00002 : 0.00004;
