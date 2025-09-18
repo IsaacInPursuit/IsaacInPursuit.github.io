@@ -909,21 +909,60 @@
     (function(){
       const root = document.documentElement;
       let engine = null;
+      let loadPromise = null;
+      let loadRequestId = 0;
+      let loggedParticleError = false;
 
       async function enableParticles(){
         const canvas = document.getElementById('console-particles');
         if(!canvas) return;
-        const mod = await import('/src/utils/particles.js');
-        engine = mod.startConsoleParticles(canvas);
-        const onResize = () => engine && engine.resize && engine.resize();
-        addEventListener('resize', onResize, { passive:true });
-        // Store cleanup
-        canvas._cleanup = () => removeEventListener('resize', onResize);
+        if(engine) return;
+        if(root.getAttribute('data-theme') !== 'console') return;
+
+        if(loadPromise) return loadPromise;
+
+        const requestId = ++loadRequestId;
+
+        loadPromise = (async () => {
+          try {
+            const mod = await import('/src/utils/particles.js');
+            if(requestId !== loadRequestId) return;
+            if(root.getAttribute('data-theme') !== 'console') return;
+            if(engine) return;
+            if(!canvas.isConnected) return;
+            const start = typeof mod?.startConsoleParticles === 'function' ? mod.startConsoleParticles : null;
+            if(!start){
+              if(!loggedParticleError){
+                console.warn('Console particles module missing startConsoleParticles(). Skipping effects.');
+                loggedParticleError = true;
+              }
+              return;
+            }
+            engine = start(canvas);
+            const onResize = () => engine?.resize?.();
+            addEventListener('resize', onResize, { passive:true });
+            canvas._cleanup = () => removeEventListener('resize', onResize);
+          } catch (error) {
+            if(!loggedParticleError){
+              console.warn('Console particles unavailable, skipping background.', error);
+              loggedParticleError = true;
+            }
+            disableParticles();
+          } finally {
+            if(requestId === loadRequestId){
+              loadPromise = null;
+            }
+          }
+        })();
+
+        return loadPromise;
       }
 
       function disableParticles(){
         const canvas = document.getElementById('console-particles');
-        if(engine && engine.stop) engine.stop();
+        loadRequestId++;
+        loadPromise = null;
+        if(engine && typeof engine.stop === 'function'){ engine.stop(); }
         engine = null;
         if(canvas && canvas._cleanup){ canvas._cleanup(); canvas._cleanup = null; }
         const ctx = canvas && canvas.getContext && canvas.getContext('2d');
